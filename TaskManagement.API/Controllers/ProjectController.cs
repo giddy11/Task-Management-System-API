@@ -36,5 +36,12 @@ namespace TaskManagement.API.Controllers
             var response = await _projectService.GetAllAsync(page, pageSize);
             return response.ResponseResult();
         }
+
+        [HttpPut]
+        public async Task<IActionResult> Update(Guid id, UpdateProjectRequest request)
+        {
+            var response = await _projectService.UpdateAsync(id, request);
+            return response.ResponseResult();
+        }
     }
 }
