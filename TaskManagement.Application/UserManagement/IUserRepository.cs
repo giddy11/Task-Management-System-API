@@ -8,4 +8,5 @@ public interface IUserRepository
     Task<OperationResponse<CreateUserResponse>> CreateAsync(CreateUserRequest request);
     Task<OperationResponse<GetUserResponse>> GetByIdAsync(Guid id);
     Task<OperationResponse<List<GetUserResponse>>> GetAllAsync(int page, int pageSize);
+    Task<OperationResponse<GetUserResponse>> UpdateAsync(Guid id, UpdateUserRequest request);
 }

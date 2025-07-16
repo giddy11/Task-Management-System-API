@@ -31,4 +31,11 @@ public class UserController(IUserRepository userService) : ControllerBase
         var response = await _userService.GetAllAsync(page, pageSize);
         return response.ResponseResult();
     }
+
+    [HttpPut]
+    public async Task<IActionResult> Update(Guid id, UpdateUserRequest request)
+    {
+        var response = await _userService.UpdateAsync(id, request);
+        return response.ResponseResult();
+    }
 }

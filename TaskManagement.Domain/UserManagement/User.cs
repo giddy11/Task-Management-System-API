@@ -4,6 +4,7 @@ namespace TaskManagement.Domain.UserManagement;
 
 public class User
 {
+    protected User() { }
     public static User New(string email, string firstName, string lastName, AccountTypes accountType = AccountTypes.User, Guid? Id = null)
     {
         return new User
@@ -14,6 +15,13 @@ public class User
             AccountType = accountType,
             Id = Id ?? Guid.Empty
         };
+    }
+
+    public void Update(string firstName, string lastName, string email)
+    {
+        FirstName = firstName;
+        LastName = lastName;
+        Email = email;
     }
 
     public Guid Id { get; init; }
