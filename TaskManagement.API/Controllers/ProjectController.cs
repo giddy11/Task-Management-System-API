@@ -2,6 +2,7 @@
 using TaskManagement.API.Extensions;
 using TaskManagement.Application.Projects;
 using TaskManagement.Application.Projects.Dtos;
+using TaskManagement.Domain.Projects;
 
 namespace TaskManagement.API.Controllers
 {
@@ -41,6 +42,20 @@ namespace TaskManagement.API.Controllers
         public async Task<IActionResult> Update(Guid id, UpdateProjectRequest request)
         {
             var response = await _projectService.UpdateAsync(id, request);
+            return response.ResponseResult();
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            var response = await _projectService.DeleteAsync(id);
+            return response.ResponseResult();
+        }
+
+        [HttpPatch("{id}/status")]
+        public async Task<IActionResult> ChangeStatus(Guid id, [FromBody] ProjectStatus status)
+        {
+            var response = await _projectService.ChangeStatusAsync(id, status);
             return response.ResponseResult();
         }
     }

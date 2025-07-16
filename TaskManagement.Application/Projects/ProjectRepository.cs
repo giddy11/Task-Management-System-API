@@ -82,4 +82,37 @@ public class ProjectRepository(TaskManagementDbContext context, IMapper mapper) 
         var mapped = _mapper.Map<GetProjectResponse>(project);
         return OperationResponse<GetProjectResponse>.SuccessfulResponse(mapped);
     }
+
+    public async Task<OperationResponse<string>> DeleteAsync(Guid id)
+    {
+        var project = await _context.Projects.FindAsync(id);
+        if (project is null)
+        {
+            return OperationResponse<string>
+                .FailedResponse(StatusCode.NotFound)
+                .AddError("Project not found");
+        }
+
+        _context.Projects.Remove(project);
+        await _context.SaveChangesAsync();
+        return OperationResponse<string>.SuccessfulResponse("Project deleted successfully");
+    }
+
+    public async Task<OperationResponse<GetProjectResponse>> ChangeStatusAsync(Guid id, ProjectStatus status)
+    {
+        var project = await _context.Projects.FindAsync(id);
+        if (project is null)
+        {
+            return OperationResponse<GetProjectResponse>
+                .FailedResponse(StatusCode.NotFound)
+                .AddError("Project not found");
+        }
+
+        project.ChangeStatus(status);
+        _context.Projects.Update(project);
+        await _context.SaveChangesAsync();
+
+        var mapped = _mapper.Map<GetProjectResponse>(project);
+        return OperationResponse<GetProjectResponse>.SuccessfulResponse(mapped);
+    }
 }
