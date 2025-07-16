@@ -13,5 +13,5 @@ public class Project
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
     public ProjectStatus ProjectStatus { get; set; } = ProjectStatus.Not_Started;
-    public IList<TodoTask>? Tasks { get; set; } = new List<TodoTask>();
+    public IList<TodoTask>? Tasks { get; set; } = [];
 }

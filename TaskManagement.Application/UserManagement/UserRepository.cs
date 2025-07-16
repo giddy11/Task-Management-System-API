@@ -7,15 +7,10 @@ using TaskManagement.Persistence;
 
 namespace TaskManagement.Application.UserManagement
 {
-    public class UserRepository : IUserRepository
+    public class UserRepository(TaskManagementDbContext context, IMapper mapper) : IUserRepository
     {
-        private readonly TaskManagementDbContext _context;
-        private readonly IMapper _mapper;
-        public UserRepository(TaskManagementDbContext context, IMapper mapper)
-        {
-            _context = context;
-            _mapper = mapper;
-        }
+        private readonly TaskManagementDbContext _context = context;
+        private readonly IMapper _mapper = mapper;
 
         public async Task<OperationResponse<CreateUserResponse>> CreateAsync(CreateUserRequest request)
         {

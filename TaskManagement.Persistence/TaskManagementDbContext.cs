@@ -6,10 +6,8 @@ using TaskManagement.Domain.UserManagement;
 
 namespace TaskManagement.Persistence;
 
-public class TaskManagementDbContext : DbContext
+public class TaskManagementDbContext(DbContextOptions<TaskManagementDbContext> options) : DbContext(options)
 {
-    public TaskManagementDbContext(DbContextOptions<TaskManagementDbContext> options) : base(options) { }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
 

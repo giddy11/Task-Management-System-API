@@ -32,7 +32,7 @@ public class OperationResponse
         return new OperationResponse() { IsSuccessful = true, Code = StatusCode.Created };
     }
 
-    public List<string> Errors { get; } = new List<string>();
+    public List<string> Errors { get; } = [];
 
     public bool IsSuccessful { get; set; }
     public StatusCode Code { get; set; }

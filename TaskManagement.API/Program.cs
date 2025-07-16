@@ -1,9 +1,18 @@
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
+using TaskManagement.Application.Mappings;
+using TaskManagement.Application.UserManagement;
 using TaskManagement.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 
 builder.Services.AddControllers();
 
@@ -12,6 +21,13 @@ builder.Services.AddDbContext<TaskManagementDbContext>(options => options.UseSql
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+builder.Services.AddAutoMapper(cfg =>
+{
+    cfg.AddMaps(typeof(MappingProfile).Assembly);
+});
 
 var app = builder.Build();
 
