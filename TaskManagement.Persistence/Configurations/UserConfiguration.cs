@@ -11,7 +11,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
     {
         builder.ToTable(nameof(TaskManagementDbContext.Users), schema: PersistenceConstants.TaskManagement_SCHEMA);
 
-        // Properties
         builder.Property(u => u.Email)
                .IsRequired()
                .HasMaxLength(255);
@@ -35,9 +34,5 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
                .IsRequired()
                .HasConversion<string>()
                .HasDefaultValue(UserStatus.Active);
-
-        builder.HasIndex(u => u.Email)
-               .IsUnique()
-               .HasDatabaseName("IX_Users_Email");
     }
 }

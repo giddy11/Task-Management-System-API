@@ -17,13 +17,12 @@ public class TaskManagementDbContext : DbContext
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(TaskManagementDbContext).Assembly);
     }
 
+    //user management entities
+    public DbSet<User> Users { get; set; }
+
     // Core Domain Entities
+    public DbSet<Label> Labels { get; set; }
     public DbSet<Project> Projects { get; set; }
     public DbSet<TodoTask> Tasks { get; set; }
     public DbSet<Comment> Comments { get; set; }
-    public DbSet<Label> Labels { get; set; }
-
-
-    //user management entities
-    public DbSet<User> Users { get; set; }
 }
