@@ -4,6 +4,18 @@ namespace TaskManagement.Domain.UserManagement;
 
 public class User
 {
+    public static User New(string email, string firstName, string lastName, AccountTypes accountType = AccountTypes.User, Guid? Id = null)
+    {
+        return new User
+        {
+            Email = email,
+            FirstName = firstName,
+            LastName = lastName,
+            AccountType = accountType,
+            Id = Id ?? Guid.Empty
+        };
+    }
+
     public Guid Id { get; init; }
     public string Email { get; set; } = default!;
     public string? PasswordHash { get; protected set; }
