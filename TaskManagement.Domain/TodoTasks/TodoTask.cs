@@ -8,8 +8,8 @@ public class TodoTask
     public Guid Id { get; init; }
     public string Title { get; set; } = default!;
     public string? Description { get; set; }
-    public User CreatedBy { get; set; } = default!;
-    public IList<User> Assignees { get; set; } = [];
+    //public User CreatedBy { get; set; } = default!;
+    //public IList<User> Assignees { get; set; } = [];
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }
     public IList<Comment> Comments { get; set; } = [];
