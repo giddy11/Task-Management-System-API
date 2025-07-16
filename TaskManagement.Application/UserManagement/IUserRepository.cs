@@ -9,4 +9,5 @@ public interface IUserRepository
     Task<OperationResponse<GetUserResponse>> GetByIdAsync(Guid id);
     Task<OperationResponse<List<GetUserResponse>>> GetAllAsync(int page, int pageSize);
     Task<OperationResponse<GetUserResponse>> UpdateAsync(Guid id, UpdateUserRequest request);
+    Task<OperationResponse<string>> DeleteAsync(Guid id);
 }

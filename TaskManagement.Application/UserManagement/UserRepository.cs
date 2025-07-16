@@ -70,5 +70,20 @@ namespace TaskManagement.Application.UserManagement
             var mapped = _mapper.Map<GetUserResponse>(user);
             return OperationResponse<GetUserResponse>.SuccessfulResponse(mapped);
         }
+
+        public async Task<OperationResponse<string>> DeleteAsync(Guid id)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user is null)
+            {
+                return OperationResponse<string>
+                    .FailedResponse(StatusCode.NotFound)
+                    .AddError("User not found");
+            }
+
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+            return OperationResponse<string>.SuccessfulResponse("User deleted successfully");
+        }
     }
 }
