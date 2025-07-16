@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using TaskManagement.Application.Mappings;
+using TaskManagement.Application.Projects;
 using TaskManagement.Application.UserManagement;
 using TaskManagement.Persistence;
 
@@ -23,6 +24,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 
 builder.Services.AddAutoMapper(cfg =>
 {
