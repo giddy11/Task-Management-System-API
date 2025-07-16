@@ -27,5 +27,30 @@ namespace TaskManagement.Application.UserManagement
             var response = _mapper.Map<CreateUserResponse>(user);
             return OperationResponse<CreateUserResponse>.SuccessfulResponse(response);
         }
+
+        public async Task<OperationResponse<List<GetUserResponse>>> GetAllAsync(int page, int pageSize)
+        {
+            var users = await _context.Users
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var mapped = _mapper.Map<List<GetUserResponse>>(users);
+            return OperationResponse<List<GetUserResponse>>.SuccessfulResponse(mapped);
+        }
+
+        public async Task<OperationResponse<GetUserResponse>> GetByIdAsync(Guid id)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user is null)
+            {
+                return OperationResponse<GetUserResponse>
+                    .FailedResponse(StatusCode.NotFound)
+                    .AddError("User not found");
+            }
+
+            var mapped = _mapper.Map<GetUserResponse>(user);
+            return OperationResponse<GetUserResponse>.SuccessfulResponse(mapped);
+        }
     }
 }
