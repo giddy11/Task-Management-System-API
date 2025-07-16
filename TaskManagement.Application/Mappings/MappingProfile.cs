@@ -14,5 +14,6 @@ public class MappingProfile : Profile
         CreateMap<User, CreateUserResponse>();
 
         CreateMap<Project, CreateProjectResponse>();
+        CreateMap<Project, GetProjectResponse>();
     }
 }

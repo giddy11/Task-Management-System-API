@@ -12,8 +12,8 @@ using TaskManagement.Persistence;
 namespace TaskManagement.Persistence.Migrations
 {
     [DbContext(typeof(TaskManagementDbContext))]
-    [Migration("20250716225338_UpdateProjectMigration")]
-    partial class UpdateProjectMigration
+    [Migration("20250716231611_UpdateProject")]
+    partial class UpdateProject
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

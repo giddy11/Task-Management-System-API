@@ -6,4 +6,6 @@ namespace TaskManagement.Application.Projects;
 public interface IProjectRepository
 {
     Task<OperationResponse<CreateProjectResponse>> CreateAsync(CreateProjectRequest request);
+    Task<OperationResponse<GetProjectResponse>> GetByIdAsync(Guid id);
+    Task<OperationResponse<List<GetProjectResponse>>> GetAllAsync(int page, int pageSize);
 }

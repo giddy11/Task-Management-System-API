@@ -1,16 +1,15 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using TaskManagement.Domain.Projects;
 
 namespace TaskManagement.Application.Projects.Dtos;
 
-public class CreateProjectRequest
+public class GetProjectResponse
 {
-    [Required]
+    public Guid Id { get; set; }
     public string Title { get; set; } = default!;
     public string? Description { get; set; }
-    [Required]
     public Guid CreatedById { get; set; }
-    [Required]
+    public string CreatedBy { get; set; } = default!;
     public DateTime StartDate { get; set; }
-    [Required]
     public DateTime EndDate { get; set; }
+    public ProjectStatus ProjectStatus { get; set; }
 }
