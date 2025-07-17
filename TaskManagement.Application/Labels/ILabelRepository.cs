@@ -8,4 +8,6 @@ public interface ILabelRepository
     Task<OperationResponse<GetLabelResponse>> GetByIdAsync(Guid id);
     Task<OperationResponse<CreateLabelResponse>> CreateAsync(CreateLabelRequest request);
     Task<OperationResponse<List<GetLabelResponse>>> GetAllAsync();
+    Task<OperationResponse<GetLabelResponse>> UpdateAsync(Guid id, UpdateLabelRequest request);
+    Task<OperationResponse<string>> DeleteAsync(Guid id);
 }

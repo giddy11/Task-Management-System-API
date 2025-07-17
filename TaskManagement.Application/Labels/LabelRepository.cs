@@ -62,4 +62,41 @@ public class LabelRepository : ILabelRepository
         var mapped = _mapper.Map<GetLabelResponse>(label);
         return OperationResponse<GetLabelResponse>.SuccessfulResponse(mapped);
     }
+
+    public async Task<OperationResponse<GetLabelResponse>> UpdateAsync(Guid id, UpdateLabelRequest request)
+    {
+        var label = await _context.Labels.FindAsync(id);
+        if (label is null)
+        {
+            return OperationResponse<GetLabelResponse>
+                .FailedResponse(StatusCode.NotFound)
+                .AddError("Label not found");
+        }
+
+        label.Update(request.Name, request.Color);
+        _context.Labels.Update(label);
+        await _context.SaveChangesAsync();
+
+        var updatedLabel = await _context.Labels
+            .Include(l => l.CreatedBy)
+            .FirstOrDefaultAsync(l => l.Id == id);
+
+        var mapped = _mapper.Map<GetLabelResponse>(updatedLabel);
+        return OperationResponse<GetLabelResponse>.SuccessfulResponse(mapped);
+    }
+
+    public async Task<OperationResponse<string>> DeleteAsync(Guid id)
+    {
+        var label = await _context.Labels.FindAsync(id);
+        if (label is null)
+        {
+            return OperationResponse<string>
+                .FailedResponse(StatusCode.NotFound)
+                .AddError("Label not found");
+        }
+
+        _context.Labels.Remove(label);
+        await _context.SaveChangesAsync();
+        return OperationResponse<string>.SuccessfulResponse("Label deleted successfully");
+    }
 }

@@ -36,4 +36,18 @@ public class LabelController : ControllerBase
         var response = await _labelService.GetAllAsync();
         return response.ResponseResult();
     }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateLabelRequest request)
+    {
+        var response = await _labelService.UpdateAsync(id, request);
+        return response.ResponseResult();
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var response = await _labelService.DeleteAsync(id);
+        return response.ResponseResult();
+    }
 }

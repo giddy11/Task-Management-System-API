@@ -22,6 +22,12 @@ public class Label
         };
     }
 
+    public void Update(string name, string color)
+    {
+        Name = name;
+        Color = color;
+    }
+
     public Guid Id { get; init; }
     public string Name { get; set; } = default!;
     public string? Color { get; set; }
