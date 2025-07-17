@@ -1,6 +1,6 @@
 ﻿namespace TaskManagement.Domain.TodoTasks;
 
-public enum TaskStatus
+public enum TodoTaskStatus
 {
     Todo,
     In_Progress,
@@ -8,9 +8,3 @@ public enum TaskStatus
     Done
 }
 
-public enum PriorityStatus
-{
-    High,
-    Medium,
-    Low
-}
