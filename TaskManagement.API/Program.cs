@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
+using TaskManagement.Application.Comments;
 using TaskManagement.Application.Labels;
 using TaskManagement.Application.Mappings;
 using TaskManagement.Application.Projects;
@@ -29,6 +30,8 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 builder.Services.AddScoped<ITodoTaskRepository, TodoTaskRepository>();
 builder.Services.AddScoped<ILabelRepository, LabelRepository>();
+builder.Services.AddScoped<ICommentRepository, CommentRepository>();
+
 
 builder.Services.AddAutoMapper(cfg =>
 {
