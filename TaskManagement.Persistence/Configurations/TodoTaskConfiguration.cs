@@ -44,7 +44,7 @@ public class TodoTaskConfiguration : IEntityTypeConfiguration<TodoTask>
 
         builder.HasOne(t => t.CreatedBy)
                .WithMany() 
-               .HasForeignKey("CreatedById")
+               .HasForeignKey(t => t.CreatedById)
                .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasMany(t => t.Assignees)
@@ -73,8 +73,8 @@ public class TodoTaskConfiguration : IEntityTypeConfiguration<TodoTask>
                .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasMany(t => t.Comments)
-               .WithOne(c => c.Task)
-               .HasForeignKey(c => c.TaskId)
+               .WithOne(c => c.TodoTask)
+               .HasForeignKey(c => c.TodoTaskId)
                .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasMany(t => t.Labels)

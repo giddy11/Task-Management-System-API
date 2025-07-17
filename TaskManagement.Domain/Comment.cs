@@ -5,6 +5,24 @@ namespace TaskManagement.Domain;
 
 public class Comment
 {
+    protected Comment() { }
+
+    public static Comment New(
+        Guid userId,
+        Guid todoTaskId,
+        string content,
+        Guid? id = null)
+    {
+        return new Comment
+        {
+            Id = id ?? Guid.NewGuid(),
+            UserId = userId,
+            TodoTaskId = todoTaskId,
+            Content = content,
+            CreatedAt = DateTime.UtcNow
+        };
+    }
+
     public Guid Id { get; init; }
     public Guid UserId { get; set; }
     public Guid TodoTaskId { get; set; }

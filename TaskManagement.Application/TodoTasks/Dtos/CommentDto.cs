@@ -3,6 +3,7 @@
     public class CommentDto
     {
         public Guid Id { get; set; }
+        public UserDto Author { get; set; } = default!;
         public string Content { get; set; } = default!;
         public DateTime CreatedAt { get; set; }
         public Guid CreatedById { get; set; }

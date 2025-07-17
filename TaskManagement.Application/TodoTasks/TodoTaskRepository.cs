@@ -55,6 +55,8 @@ namespace TaskManagement.Application.TodoTasks
                 .Include(t => t.CreatedBy)
                 .Include(t => t.Project)
                 .Include(t => t.Assignees)
+                .Include(t => t.Comments)
+                    .ThenInclude(c => c.User)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
@@ -70,7 +72,7 @@ namespace TaskManagement.Application.TodoTasks
                 .Include(t => t.Project)
                 .Include(t => t.Assignees)
                 .Include(t => t.Comments)
-                .Include(t => t.Labels)
+                    .ThenInclude(c => c.User)
                 .FirstOrDefaultAsync(t => t.Id == id);
 
             if (task is null)
