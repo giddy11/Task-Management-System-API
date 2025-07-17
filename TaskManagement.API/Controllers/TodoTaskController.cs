@@ -72,4 +72,11 @@ public class TodoTaskController : ControllerBase
         var response = await _todoTaskRepository.RemoveAssigneeAsync(taskId, userId);
         return response.ResponseResult();
     }
+
+    [HttpDelete]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var response = await _todoTaskRepository.DeleteAsync(id);
+        return response.ResponseResult();
+    }
 }

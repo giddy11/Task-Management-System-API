@@ -199,5 +199,20 @@ namespace TaskManagement.Application.TodoTasks
             var mapped = _mapper.Map<GetTodoTaskResponse>(task);
             return OperationResponse<GetTodoTaskResponse>.SuccessfulResponse(mapped);
         }
+
+        public async Task<OperationResponse<string>> DeleteAsync(Guid id)
+        {
+            var task = await _context.Tasks.FindAsync(id);
+            if (task is null)
+            {
+                return OperationResponse<string>
+                    .FailedResponse(StatusCode.NotFound)
+                    .AddError("Task not found");
+            }
+
+            _context.Tasks.Remove(task);
+            await _context.SaveChangesAsync();
+            return OperationResponse<string>.SuccessfulResponse("Task deleted successfully");
+        }
     }
 }
