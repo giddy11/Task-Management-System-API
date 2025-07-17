@@ -2,6 +2,7 @@
 using TaskManagement.API.Extensions;
 using TaskManagement.Application.TodoTasks;
 using TaskManagement.Application.TodoTasks.Dtos;
+using TaskManagement.Domain.TodoTasks;
 
 namespace TaskManagement.API.Controllers;
 
@@ -41,6 +42,20 @@ public class TodoTaskController : ControllerBase
     public async Task<IActionResult> Update(Guid id, UpdateTodoTaskRequest request)
     {
         var response = await _todoTaskRepository.UpdateAsync(id, request);
+        return response.ResponseResult();
+    }
+
+    [HttpPatch("{id}/status")]
+    public async Task<IActionResult> ChangeStatus(Guid id, [FromBody] TodoTaskStatus status)
+    {
+        var response = await _todoTaskRepository.ChangeStatusAsync(id, status);
+        return response.ResponseResult();
+    }
+
+    [HttpPatch("{id}/priority")]
+    public async Task<IActionResult> ChangePriority(Guid id, [FromBody] PriorityStatus priority)
+    {
+        var response = await _todoTaskRepository.ChangePriorityAsync(id, priority);
         return response.ResponseResult();
     }
 }

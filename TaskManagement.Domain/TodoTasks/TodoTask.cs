@@ -44,6 +44,18 @@ public class TodoTask
         EndDate = endDate;
     }
 
+    public TodoTask ChangeStatus(TodoTaskStatus status)
+    {
+        TodoTaskStatus = status;
+        return this;
+    }
+
+    public TodoTask ChangePriority(PriorityStatus priority)
+    {
+        PriorityStatus = priority;
+        return this;
+    }
+
     public Guid Id { get; init; }
     public string Title { get; set; } = default!;
     public string? Description { get; set; }

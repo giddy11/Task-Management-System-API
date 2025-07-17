@@ -105,5 +105,49 @@ namespace TaskManagement.Application.TodoTasks
             var mapped = _mapper.Map<GetTodoTaskResponse>(task);
             return OperationResponse<GetTodoTaskResponse>.SuccessfulResponse(mapped);
         }
+
+        public async Task<OperationResponse<GetTodoTaskResponse>> ChangeStatusAsync(Guid id, TodoTaskStatus status)
+        {
+            var task = await _context.Tasks
+                .Include(t => t.CreatedBy)
+                .Include(t => t.Project)
+                .FirstOrDefaultAsync(t => t.Id == id);
+
+            if (task is null)
+            {
+                return OperationResponse<GetTodoTaskResponse>
+                    .FailedResponse(StatusCode.NotFound)
+                    .AddError("Task not found");
+            }
+
+            task.ChangeStatus(status);
+            _context.Tasks.Update(task);
+            await _context.SaveChangesAsync();
+
+            var mapped = _mapper.Map<GetTodoTaskResponse>(task);
+            return OperationResponse<GetTodoTaskResponse>.SuccessfulResponse(mapped);
+        }
+
+        public async Task<OperationResponse<GetTodoTaskResponse>> ChangePriorityAsync(Guid id, PriorityStatus priority)
+        {
+            var task = await _context.Tasks
+                .Include(t => t.CreatedBy)
+                .Include(t => t.Project)
+                .FirstOrDefaultAsync(t => t.Id == id);
+
+            if (task is null)
+            {
+                return OperationResponse<GetTodoTaskResponse>
+                    .FailedResponse(StatusCode.NotFound)
+                    .AddError("Task not found");
+            }
+
+            task.ChangePriority(priority);
+            _context.Tasks.Update(task);
+            await _context.SaveChangesAsync();
+
+            var mapped = _mapper.Map<GetTodoTaskResponse>(task);
+            return OperationResponse<GetTodoTaskResponse>.SuccessfulResponse(mapped);
+        }
     }
 }
