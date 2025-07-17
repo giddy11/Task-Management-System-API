@@ -39,6 +39,9 @@ public class TodoTaskConfiguration : IEntityTypeConfiguration<TodoTask>
         builder.Property(t => t.ProjectId)
                .IsRequired();
 
+        builder.Property(p => p.CreatedById)
+               .IsRequired();
+
         builder.HasOne(t => t.CreatedBy)
                .WithMany() 
                .HasForeignKey("CreatedById")

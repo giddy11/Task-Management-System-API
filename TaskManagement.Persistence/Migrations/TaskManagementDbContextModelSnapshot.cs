@@ -44,7 +44,7 @@ namespace TaskManagement.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Comments");
+                    b.ToTable("Comments", (string)null);
                 });
 
             modelBuilder.Entity("TaskManagement.Domain.Label", b =>
@@ -62,7 +62,7 @@ namespace TaskManagement.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Labels");
+                    b.ToTable("Labels", (string)null);
                 });
 
             modelBuilder.Entity("TaskManagement.Domain.Projects.Project", b =>
