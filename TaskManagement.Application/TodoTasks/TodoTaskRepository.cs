@@ -83,5 +83,27 @@ namespace TaskManagement.Application.TodoTasks
             var mapped = _mapper.Map<GetTodoTaskResponse>(task);
             return OperationResponse<GetTodoTaskResponse>.SuccessfulResponse(mapped);
         }
+
+        public async Task<OperationResponse<GetTodoTaskResponse>> UpdateAsync(Guid id, UpdateTodoTaskRequest request)
+        {
+            var task = await _context.Tasks
+                .Include(t => t.CreatedBy)
+                .Include(t => t.Project)
+                .FirstOrDefaultAsync(t => t.Id == id);
+
+            if (task is null)
+            {
+                return OperationResponse<GetTodoTaskResponse>
+                    .FailedResponse(StatusCode.NotFound)
+                    .AddError("Task not found");
+            }
+
+            task.Update(request.Title, request.Description, request.StartDate, request.EndDate);
+            _context.Tasks.Update(task);
+            await _context.SaveChangesAsync();
+
+            var mapped = _mapper.Map<GetTodoTaskResponse>(task);
+            return OperationResponse<GetTodoTaskResponse>.SuccessfulResponse(mapped);
+        }
     }
 }

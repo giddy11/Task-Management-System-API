@@ -36,4 +36,11 @@ public class TodoTaskController : ControllerBase
         var response = await _todoTaskRepository.GetAllAsync(page, pageSize);
         return response.ResponseResult();
     }
+
+    [HttpPut]
+    public async Task<IActionResult> Update(Guid id, UpdateTodoTaskRequest request)
+    {
+        var response = await _todoTaskRepository.UpdateAsync(id, request);
+        return response.ResponseResult();
+    }
 }

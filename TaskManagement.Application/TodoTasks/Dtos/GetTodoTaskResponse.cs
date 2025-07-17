@@ -8,7 +8,7 @@ public class GetTodoTaskResponse
     public string Title { get; set; } = default!;
     public string? Description { get; set; }
     public Guid CreatedById { get; set; }
-    public string CreatedBy { get; set; } = default!;
+    public UserDto CreatedBy { get; set; } = default!;
     public List<UserDto> Assignees { get; set; } = [];
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }

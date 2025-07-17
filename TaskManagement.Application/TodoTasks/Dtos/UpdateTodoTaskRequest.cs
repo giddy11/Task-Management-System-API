@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace TaskManagement.Application.TodoTasks.Dtos
+namespace TaskManagement.Application.TodoTasks.Dtos;
+
+public class UpdateTodoTaskRequest
 {
-    internal class UpdateTodoTaskRequest
-    {
-    }
+    [Required]
+    public string Title { get; set; } = default!;
+    public string? Description { get; set; }
+    public DateTime? StartDate { get; set; }
+    public DateTime? EndDate { get; set; }
 }

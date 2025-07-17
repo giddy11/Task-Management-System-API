@@ -32,6 +32,18 @@ public class TodoTask
         };
     }
 
+    public void Update(
+        string title,
+        string? description,
+        DateTime? startDate,
+        DateTime? endDate)
+    {
+        Title = title;
+        Description = description;
+        StartDate = startDate;
+        EndDate = endDate;
+    }
+
     public Guid Id { get; init; }
     public string Title { get; set; } = default!;
     public string? Description { get; set; }
