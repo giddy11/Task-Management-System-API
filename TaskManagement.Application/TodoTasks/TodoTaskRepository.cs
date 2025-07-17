@@ -217,5 +217,88 @@ namespace TaskManagement.Application.TodoTasks
             await _context.SaveChangesAsync();
             return OperationResponse<string>.SuccessfulResponse("Task deleted successfully");
         }
+
+        public async Task<OperationResponse<GetTodoTaskResponse>> AddLabelAsync(Guid taskId, Guid labelId)
+        {
+            var task = await _context.Tasks
+                .Include(t => t.Labels)
+                    .ThenInclude(l => l.CreatedBy)
+                .Include(t => t.Labels)
+                .Include(t => t.CreatedBy)
+                .Include(t => t.Assignees)
+                .Include(t => t.Project)
+                .FirstOrDefaultAsync(t => t.Id == taskId);
+
+            if (task == null)
+            {
+                return OperationResponse<GetTodoTaskResponse>
+                    .FailedResponse(StatusCode.NotFound)
+                    .AddError("Task not found");
+            }
+
+            var label = await _context.Labels.FindAsync(labelId);
+            if (label == null)
+            {
+                return OperationResponse<GetTodoTaskResponse>
+                    .FailedResponse(StatusCode.NotFound)
+                    .AddError("Label not found");
+            }
+
+            if (!task.Labels.Any(l => l.Id == labelId))
+            {
+                task.Labels.Add(label);
+                _context.Tasks.Update(task);
+                await _context.SaveChangesAsync();
+            }
+
+            var updatedTask = await _context.Tasks
+                .Include(t => t.Labels)
+                .Include(t => t.CreatedBy)
+                .Include(t => t.Assignees)
+                .Include(t => t.Project)
+                .FirstOrDefaultAsync(t => t.Id == taskId);
+
+            var mapped = _mapper.Map<GetTodoTaskResponse>(updatedTask);
+            return OperationResponse<GetTodoTaskResponse>.SuccessfulResponse(mapped);
+        }
+
+        public async Task<OperationResponse<GetTodoTaskResponse>> RemoveLabelAsync(Guid taskId, Guid labelId)
+        {
+            var task = await _context.Tasks
+                .Include(t => t.Labels)
+                .Include(t => t.CreatedBy)
+                .Include(t => t.Assignees)
+                .Include(t => t.Project)
+                .FirstOrDefaultAsync(t => t.Id == taskId);
+
+            if (task == null)
+            {
+                return OperationResponse<GetTodoTaskResponse>
+                    .FailedResponse(StatusCode.NotFound)
+                    .AddError("Task not found");
+            }
+
+            var label = task.Labels.FirstOrDefault(l => l.Id == labelId);
+            if (label == null)
+            {
+                return OperationResponse<GetTodoTaskResponse>
+                    .FailedResponse(StatusCode.NotFound)
+                    .AddError("Label not found on this task");
+            }
+
+            task.Labels.Remove(label);
+            _context.Tasks.Update(task);
+            await _context.SaveChangesAsync();
+
+            var updatedTask = await _context.Tasks
+                .Include(t => t.Labels)
+                .Include(t => t.CreatedBy)
+                .Include(t => t.Assignees)
+                .Include(t => t.Project)
+                .FirstOrDefaultAsync(t => t.Id == taskId);
+
+            var mapped = _mapper.Map<GetTodoTaskResponse>(updatedTask);
+            return OperationResponse<GetTodoTaskResponse>.SuccessfulResponse(mapped);
+        }
     }
 }
