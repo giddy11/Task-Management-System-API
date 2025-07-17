@@ -79,4 +79,18 @@ public class TodoTaskController : ControllerBase
         var response = await _todoTaskRepository.DeleteAsync(id);
         return response.ResponseResult();
     }
+
+    [HttpPost("add-label")]
+    public async Task<IActionResult> AddLabel([FromBody] LabelTaskRequest request)
+    {
+        var response = await _todoTaskRepository.AddLabelAsync(request.TodoTaskId, request.LabelId);
+        return response.ResponseResult();
+    }
+
+    [HttpDelete("remove-label")]
+    public async Task<IActionResult> RemoveLabel([FromBody] LabelTaskRequest request)
+    {
+        var response = await _todoTaskRepository.RemoveLabelAsync(request.TodoTaskId, request.LabelId);
+        return response.ResponseResult();
+    }
 }

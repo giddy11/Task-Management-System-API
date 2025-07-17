@@ -15,4 +15,6 @@ public interface ITodoTaskRepository
     Task<OperationResponse<GetTodoTaskResponse>> AssignUserAsync(Guid taskId, Guid userId);
     Task<OperationResponse<GetTodoTaskResponse>> RemoveAssigneeAsync(Guid taskId, Guid userId);
     Task<OperationResponse<string>> DeleteAsync(Guid id);
+    Task<OperationResponse<GetTodoTaskResponse>> AddLabelAsync(Guid taskId, Guid labelId);
+    Task<OperationResponse<GetTodoTaskResponse>> RemoveLabelAsync(Guid taskId, Guid labelId);
 }

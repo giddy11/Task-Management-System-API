@@ -22,9 +22,7 @@ public class MappingProfile : Profile
         CreateMap<Project, GetProjectResponse>();
 
         CreateMap<TodoTask, CreateTodoTaskResponse>();
-        CreateMap<TodoTask, GetTodoTaskResponse>();
         CreateMap<User, UserDto>(); 
-
         CreateMap<TodoTask, GetTodoTaskResponse>()
             .ForMember(dest => dest.Labels, opt => opt.MapFrom(src => src.Labels))
             .ForMember(dest => dest.Assignees, opt => opt.MapFrom(src => src.Assignees))
@@ -37,6 +35,8 @@ public class MappingProfile : Profile
 
         CreateMap<Label, GetLabelResponse>();
         CreateMap<Label, CreateLabelResponse>();
+        CreateMap<Label, LabelDto>()
+            .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.CreatedBy));
 
         CreateMap<Comment, GetCommentResponse>()
             .ForMember(dest => dest.Author, opt => opt.MapFrom(src => src.User));
