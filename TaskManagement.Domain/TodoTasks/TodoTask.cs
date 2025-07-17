@@ -56,6 +56,24 @@ public class TodoTask
         return this;
     }
 
+    public TodoTask AssignToUser(User user)
+    {
+        if (!Assignees.Contains(user))
+        {
+            Assignees.Add(user);
+        }
+        return this;
+    }
+
+    public TodoTask RemoveAssignee(User user)
+    {
+        if (Assignees.Contains(user))
+        {
+            Assignees.Remove(user);
+        }
+        return this;
+    }
+
     public Guid Id { get; init; }
     public string Title { get; set; } = default!;
     public string? Description { get; set; }

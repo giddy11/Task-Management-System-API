@@ -149,5 +149,55 @@ namespace TaskManagement.Application.TodoTasks
             var mapped = _mapper.Map<GetTodoTaskResponse>(task);
             return OperationResponse<GetTodoTaskResponse>.SuccessfulResponse(mapped);
         }
+
+        public async Task<OperationResponse<GetTodoTaskResponse>> AssignUserAsync(Guid taskId, Guid userId)
+        {
+            var task = await _context.Tasks
+                .Include(t => t.CreatedBy)
+                .Include(t => t.Project)
+                .Include(t => t.Assignees)
+                .FirstOrDefaultAsync(t => t.Id == taskId);
+
+            var user = await _context.Users.FindAsync(userId);
+
+            if (task is null || user is null)
+            {
+                return OperationResponse<GetTodoTaskResponse>
+                    .FailedResponse(StatusCode.NotFound)
+                    .AddError(task is null ? "Task not found" : "User not found");
+            }
+
+            task.AssignToUser(user);
+            _context.Tasks.Update(task);
+            await _context.SaveChangesAsync();
+
+            var mapped = _mapper.Map<GetTodoTaskResponse>(task);
+            return OperationResponse<GetTodoTaskResponse>.SuccessfulResponse(mapped);
+        }
+
+        public async Task<OperationResponse<GetTodoTaskResponse>> RemoveAssigneeAsync(Guid taskId, Guid userId)
+        {
+            var task = await _context.Tasks
+                .Include(t => t.CreatedBy)
+                .Include(t => t.Project)
+                .Include(t => t.Assignees)
+                .FirstOrDefaultAsync(t => t.Id == taskId);
+
+            var user = await _context.Users.FindAsync(userId);
+
+            if (task is null || user is null)
+            {
+                return OperationResponse<GetTodoTaskResponse>
+                    .FailedResponse(StatusCode.NotFound)
+                    .AddError(task is null ? "Task not found" : "User not found");
+            }
+
+            task.RemoveAssignee(user);
+            _context.Tasks.Update(task);
+            await _context.SaveChangesAsync();
+
+            var mapped = _mapper.Map<GetTodoTaskResponse>(task);
+            return OperationResponse<GetTodoTaskResponse>.SuccessfulResponse(mapped);
+        }
     }
 }

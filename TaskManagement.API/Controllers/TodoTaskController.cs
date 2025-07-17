@@ -58,4 +58,18 @@ public class TodoTaskController : ControllerBase
         var response = await _todoTaskRepository.ChangePriorityAsync(id, priority);
         return response.ResponseResult();
     }
+
+    [HttpPost("{taskId}/assign/{userId}")]
+    public async Task<IActionResult> AssignUser(Guid taskId, Guid userId)
+    {
+        var response = await _todoTaskRepository.AssignUserAsync(taskId, userId);
+        return response.ResponseResult();
+    }
+
+    [HttpDelete("{taskId}/assign/{userId}")]
+    public async Task<IActionResult> RemoveAssignee(Guid taskId, Guid userId)
+    {
+        var response = await _todoTaskRepository.RemoveAssigneeAsync(taskId, userId);
+        return response.ResponseResult();
+    }
 }

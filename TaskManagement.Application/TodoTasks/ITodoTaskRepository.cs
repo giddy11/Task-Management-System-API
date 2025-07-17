@@ -12,4 +12,6 @@ public interface ITodoTaskRepository
     Task<OperationResponse<GetTodoTaskResponse>> UpdateAsync(Guid id, UpdateTodoTaskRequest request);
     Task<OperationResponse<GetTodoTaskResponse>> ChangeStatusAsync(Guid id, TodoTaskStatus status);
     Task<OperationResponse<GetTodoTaskResponse>> ChangePriorityAsync(Guid id, PriorityStatus priority);
+    Task<OperationResponse<GetTodoTaskResponse>> AssignUserAsync(Guid taskId, Guid userId);
+    Task<OperationResponse<GetTodoTaskResponse>> RemoveAssigneeAsync(Guid taskId, Guid userId);
 }
