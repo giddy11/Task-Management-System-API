@@ -36,5 +36,19 @@ namespace TaskManagement.API.Controllers
             var response = await _commentService.GetAllForTaskAsync(taskId);
             return response.ResponseResult();
         }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCommentRequest request)
+        {
+            var response = await _commentService.UpdateAsync(id, request);
+            return response.ResponseResult();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            var response = await _commentService.DeleteAsync(id);
+            return response.ResponseResult();
+        }
     }
 }
