@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using TaskManagement.Application.Mappings;
 using TaskManagement.Application.Projects;
+using TaskManagement.Application.TodoTasks;
 using TaskManagement.Application.UserManagement;
 using TaskManagement.Persistence;
 
@@ -25,6 +26,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
+builder.Services.AddScoped<ITodoTaskRepository, TodoTaskRepository>();
 
 builder.Services.AddAutoMapper(cfg =>
 {

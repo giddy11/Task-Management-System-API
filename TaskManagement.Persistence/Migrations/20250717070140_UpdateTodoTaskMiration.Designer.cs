@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TaskManagement.Persistence;
 
@@ -11,9 +12,11 @@ using TaskManagement.Persistence;
 namespace TaskManagement.Persistence.Migrations
 {
     [DbContext(typeof(TaskManagementDbContext))]
-    partial class TaskManagementDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250717070140_UpdateTodoTaskMiration")]
+    partial class UpdateTodoTaskMiration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -44,7 +47,7 @@ namespace TaskManagement.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Comments", (string)null);
+                    b.ToTable("Comments");
                 });
 
             modelBuilder.Entity("TaskManagement.Domain.Label", b =>
@@ -62,7 +65,7 @@ namespace TaskManagement.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Labels", (string)null);
+                    b.ToTable("Labels");
                 });
 
             modelBuilder.Entity("TaskManagement.Domain.Projects.Project", b =>

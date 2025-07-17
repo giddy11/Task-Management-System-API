@@ -5,17 +5,87 @@ namespace TaskManagement.Domain.TodoTasks;
 
 public class TodoTask
 {
+    protected TodoTask() { }
+
+    public static TodoTask New(
+        string title,
+        Guid createdById,
+        Guid projectId,
+        string? description = null,
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        TodoTaskStatus status = TodoTaskStatus.Todo,
+        PriorityStatus priority = PriorityStatus.Low,
+        Guid? id = null)
+    {
+        return new TodoTask
+        {
+            Id = id ?? Guid.NewGuid(),
+            Title = title,
+            Description = description,
+            CreatedById = createdById,
+            ProjectId = projectId,
+            StartDate = startDate,
+            EndDate = endDate,
+            TodoTaskStatus = status,
+            PriorityStatus = priority
+        };
+    }
+
+    public void Update(
+        string title,
+        string? description,
+        DateTime? startDate,
+        DateTime? endDate)
+    {
+        Title = title;
+        Description = description;
+        StartDate = startDate;
+        EndDate = endDate;
+    }
+
+    public TodoTask ChangeStatus(TodoTaskStatus status)
+    {
+        TodoTaskStatus = status;
+        return this;
+    }
+
+    public TodoTask ChangePriority(PriorityStatus priority)
+    {
+        PriorityStatus = priority;
+        return this;
+    }
+
+    public TodoTask AssignToUser(User user)
+    {
+        if (!Assignees.Contains(user))
+        {
+            Assignees.Add(user);
+        }
+        return this;
+    }
+
+    public TodoTask RemoveAssignee(User user)
+    {
+        if (Assignees.Contains(user))
+        {
+            Assignees.Remove(user);
+        }
+        return this;
+    }
+
     public Guid Id { get; init; }
     public string Title { get; set; } = default!;
     public string? Description { get; set; }
-    //public User CreatedBy { get; set; } = default!;
-    //public IList<User> Assignees { get; set; } = [];
+    public Guid CreatedById { get; set; }
+    public User CreatedBy { get; set; } = default!;
+    public IList<User> Assignees { get; set; } = [];
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }
     public IList<Comment> Comments { get; set; } = [];
     public IList<Label> Labels { get; set; } = [];
     public Guid ProjectId { get; set; }
     public Project Project { get; set; } = default!;
-    public TaskStatus TaskStatus { get; set; } = TaskStatus.Todo;
+    public TodoTaskStatus TodoTaskStatus { get; set; } = TodoTaskStatus.Todo;
     public PriorityStatus PriorityStatus { get; set; } = PriorityStatus.Low;
 }
