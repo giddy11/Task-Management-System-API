@@ -23,6 +23,12 @@ public class Comment
         };
     }
 
+    public void Update(string content)
+    {
+        Content = content;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public Guid Id { get; init; }
     public Guid UserId { get; set; }
     public Guid TodoTaskId { get; set; }

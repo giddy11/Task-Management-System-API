@@ -54,14 +54,12 @@ namespace TaskManagement.Application.Comments
             return OperationResponse<CreateCommentResponse>.SuccessfulResponse(response);
         }
 
-        public async Task<OperationResponse<List<GetCommentResponse>>> GetAllForTaskAsync(Guid taskId, int page, int pageSize)
+        public async Task<OperationResponse<List<GetCommentResponse>>> GetAllForTaskAsync(Guid taskId)
         {
             var comments = await _context.Comments
                 .Where(c => c.TodoTaskId == taskId)
                 .Include(c => c.User)
                 .OrderByDescending(c => c.CreatedAt)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
                 .ToListAsync();
 
             var mapped = _mapper.Map<List<GetCommentResponse>>(comments);
@@ -84,6 +82,45 @@ namespace TaskManagement.Application.Comments
 
             var mapped = _mapper.Map<GetCommentResponse>(comment);
             return OperationResponse<GetCommentResponse>.SuccessfulResponse(mapped);
+        }
+
+        public async Task<OperationResponse<GetCommentResponse>> UpdateAsync(Guid id, UpdateCommentRequest request)
+        {
+            var comment = await _context.Comments.FindAsync(id);
+            if (comment is null)
+            {
+                return OperationResponse<GetCommentResponse>
+                    .FailedResponse(StatusCode.NotFound)
+                    .AddError("Comment not found");
+            }
+
+            comment.Update(request.Content);
+            _context.Comments.Update(comment);
+            await _context.SaveChangesAsync();
+
+            // Reload with relationships
+            var updatedComment = await _context.Comments
+                .Include(c => c.User)
+                .Include(c => c.TodoTask)
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            var mapped = _mapper.Map<GetCommentResponse>(updatedComment);
+            return OperationResponse<GetCommentResponse>.SuccessfulResponse(mapped);
+        }
+
+        public async Task<OperationResponse<string>> DeleteAsync(Guid id)
+        {
+            var comment = await _context.Comments.FindAsync(id);
+            if (comment is null)
+            {
+                return OperationResponse<string>
+                    .FailedResponse(StatusCode.NotFound)
+                    .AddError("Comment not found");
+            }
+
+            _context.Comments.Remove(comment);
+            await _context.SaveChangesAsync();
+            return OperationResponse<string>.SuccessfulResponse("Comment deleted successfully");
         }
     }
 }

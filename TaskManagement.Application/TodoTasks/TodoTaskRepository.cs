@@ -55,6 +55,7 @@ namespace TaskManagement.Application.TodoTasks
                 .Include(t => t.CreatedBy)
                 .Include(t => t.Project)
                 .Include(t => t.Assignees)
+                .Include(t => t.Labels)
                 .Include(t => t.Comments)
                     .ThenInclude(c => c.User)
                 .Skip((page - 1) * pageSize)

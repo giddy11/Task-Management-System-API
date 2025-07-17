@@ -31,9 +31,9 @@ namespace TaskManagement.API.Controllers
         }
 
         [HttpGet("task/{taskId}")]
-        public async Task<IActionResult> GetAllForTask(Guid taskId, int page = 1, int pageSize = 10)
+        public async Task<IActionResult> GetAllForTask(Guid taskId)
         {
-            var response = await _commentService.GetAllForTaskAsync(taskId, page, pageSize);
+            var response = await _commentService.GetAllForTaskAsync(taskId);
             return response.ResponseResult();
         }
     }
