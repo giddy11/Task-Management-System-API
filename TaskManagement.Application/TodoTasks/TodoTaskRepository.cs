@@ -39,15 +39,49 @@ namespace TaskManagement.Application.TodoTasks
                 request.Title,
                 request.CreatedById,
                 request.ProjectId,
-                request.Description,
-                request.StartDate,
-                request.EndDate);
+                request.Description
+                );
 
             await _context.Tasks.AddAsync(task);
             await _context.SaveChangesAsync();
 
             var response = _mapper.Map<CreateTodoTaskResponse>(task);
             return OperationResponse<CreateTodoTaskResponse>.SuccessfulResponse(response);
+        }
+
+        public async Task<OperationResponse<List<GetTodoTaskResponse>>> GetAllAsync(int page, int pageSize)
+        {
+            var tasks = await _context.Tasks
+                .Include(t => t.CreatedBy)
+                .Include(t => t.Project)
+                .Include(t => t.Assignees)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var mapped = _mapper.Map<List<GetTodoTaskResponse>>(tasks);
+            return OperationResponse<List<GetTodoTaskResponse>>.SuccessfulResponse(mapped);
+        }
+
+        public async Task<OperationResponse<GetTodoTaskResponse>> GetByIdAsync(Guid id)
+        {
+            var task = await _context.Tasks
+                .Include(t => t.CreatedBy)
+                .Include(t => t.Project)
+                .Include(t => t.Assignees)
+                .Include(t => t.Comments)
+                .Include(t => t.Labels)
+                .FirstOrDefaultAsync(t => t.Id == id);
+
+            if (task is null)
+            {
+                return OperationResponse<GetTodoTaskResponse>
+                    .FailedResponse(StatusCode.NotFound)
+                    .AddError("Task not found");
+            }
+
+            var mapped = _mapper.Map<GetTodoTaskResponse>(task);
+            return OperationResponse<GetTodoTaskResponse>.SuccessfulResponse(mapped);
         }
     }
 }

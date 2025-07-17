@@ -12,8 +12,4 @@ public class CreateTodoTaskRequest
     public Guid CreatedById { get; set; }
     [Required]
     public Guid ProjectId { get; set; }
-    public DateTime? StartDate { get; set; }
-    public DateTime? EndDate { get; set; }
-    public TodoTaskStatus Status { get; set; } = TodoTaskStatus.Todo;
-    public PriorityStatus Priority { get; set; } = PriorityStatus.Low;
 }

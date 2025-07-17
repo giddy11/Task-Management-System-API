@@ -19,5 +19,6 @@ public class MappingProfile : Profile
         CreateMap<Project, GetProjectResponse>();
 
         CreateMap<TodoTask, CreateTodoTaskResponse>();
+        CreateMap<TodoTask, GetTodoTaskResponse>();
     }
 }

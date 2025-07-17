@@ -22,4 +22,18 @@ public class TodoTaskController : ControllerBase
         var response = await _todoTaskRepository.CreateAsync(request);
         return response.ResponseResult();
     }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(Guid id)
+    {
+        var response = await _todoTaskRepository.GetByIdAsync(id);
+        return response.ResponseResult();
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll(int page = 1, int pageSize = 10)
+    {
+        var response = await _todoTaskRepository.GetAllAsync(page, pageSize);
+        return response.ResponseResult();
+    }
 }
