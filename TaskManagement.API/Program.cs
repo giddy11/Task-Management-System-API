@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
+using System.Reflection;
 using System.Text.Json.Serialization;
 using TaskManagement.Application.Comments;
 using TaskManagement.Application.Labels;
@@ -24,7 +26,25 @@ var connectionString = builder.Configuration.GetConnectionString("TaskManagement
 builder.Services.AddDbContext<TaskManagementDbContext>(options => options.UseSqlServer(connectionString));
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Task Management Application API",
+        Version = "v1",
+        Description = "Documentation on Task Management Application API",
+        Contact = new OpenApiContact
+        {
+            Name = "Edoghotu Gideon Azibaobuom",
+            Email = "gideon.edoghotu@cyphercrescent.com",
+            Url = new Uri("https://yourwebsite.com")
+        }
+    });
+
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    c.IncludeXmlComments(xmlPath);
+});
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
@@ -44,7 +64,12 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    //app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Task Management API V1");
+        c.RoutePrefix = string.Empty;
+    });
 }
 
 app.UseHttpsRedirection();
