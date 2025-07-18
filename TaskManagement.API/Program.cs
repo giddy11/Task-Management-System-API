@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.Text.Json.Serialization;
+using TaskManagement.API;
 using TaskManagement.Application.Comments;
 using TaskManagement.Application.Labels;
 using TaskManagement.Application.Mappings;
@@ -70,6 +71,24 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Task Management API V1");
         c.RoutePrefix = string.Empty;
     });
+
+    using (var scope = app.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
+        var logger = services.GetRequiredService<ILogger<Program>>();
+
+        try
+        {
+            var context = services.GetRequiredService<TaskManagementDbContext>();
+            logger.LogInformation("Migrating database...");
+            context.Database.Migrate();
+            DatabaseSeeder.Seed(context);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An error occurred while seeding the database.");
+        }
+    }
 }
 
 app.UseHttpsRedirection();
