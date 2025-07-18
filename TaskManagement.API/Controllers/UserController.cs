@@ -2,7 +2,6 @@
 using TaskManagement.API.Extensions;
 using TaskManagement.Application.UserManagement;
 using TaskManagement.Application.UserManagement.Dtos;
-using TaskManagement.Application.Utils;
 
 namespace TaskManagement.API.Controllers;
 
@@ -33,9 +32,9 @@ public class UserController : ControllerBase
     /// <response code="400">Invalid request data.</response>
     /// <response code="500">Internal server error.</response>
     [HttpPost]
-    [ProducesResponseType(typeof(OperationResponse<CreateUserResponse>),StatusCodes.Status201Created)]
-    [ProducesResponseType(typeof(OperationResponse<CreateUserResponse>), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(OperationResponse<CreateUserResponse>), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Create([FromBody] CreateUserRequest request)
     {
         var response = await _userService.CreateAsync(request);
@@ -51,9 +50,9 @@ public class UserController : ControllerBase
     /// <response code="404">User not found.</response>
     /// <response code="500">Internal server error.</response>
     [HttpGet("{id}")]
-    [ProducesResponseType(typeof(OperationResponse<GetUserResponse>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(OperationResponse<GetUserResponse>), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(OperationResponse<GetUserResponse>), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var response = await _userService.GetByIdAsync(id);
@@ -70,9 +69,9 @@ public class UserController : ControllerBase
     /// <response code="400">Invalid pagination parameters.</response>
     /// <response code="500">Internal server error.</response>
     [HttpGet]
-    [ProducesResponseType(typeof(OperationResponse<GetUserResponse>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(OperationResponse<GetUserResponse>), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(OperationResponse<GetUserResponse>), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetAll(int page = 1, int pageSize = 10)
     {
         var response = await _userService.GetAllAsync(page, pageSize);
@@ -90,10 +89,10 @@ public class UserController : ControllerBase
     /// <response code="404">User not found.</response>
     /// <response code="500">Internal server error.</response>
     [HttpPut]
-    [ProducesResponseType(typeof(OperationResponse<GetUserResponse>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(OperationResponse<GetUserResponse>), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(OperationResponse<GetUserResponse>), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(OperationResponse<GetUserResponse>), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Update(Guid id, UpdateUserRequest request)
     {
         var response = await _userService.UpdateAsync(id, request);
@@ -109,9 +108,9 @@ public class UserController : ControllerBase
     /// <response code="404">User not found.</response>
     /// <response code="500">Internal server error.</response>
     [HttpDelete]
-    [ProducesResponseType(typeof(OperationResponse<GetUserResponse>), StatusCodes.Status204NoContent)]
-    [ProducesResponseType(typeof(OperationResponse<GetUserResponse>), StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(OperationResponse<GetUserResponse>), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Delete(Guid id)
     {
         var response = await _userService.DeleteAsync(id);

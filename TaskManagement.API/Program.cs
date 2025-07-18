@@ -68,8 +68,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Task Management API V1");
-        //c.RoutePrefix = string.Empty; // Makes Swagger UI available at the root (e.g., http://localhost:7000/)
-        c.RoutePrefix = "/index";
+        c.RoutePrefix = string.Empty;
     });
 }
 
