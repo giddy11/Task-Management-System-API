@@ -12,7 +12,7 @@ public class UserRepository(TaskManagementDbContext context, IMapper mapper) : I
     private readonly TaskManagementDbContext _context = context;
     private readonly IMapper _mapper = mapper;
 
-    public async Task<OperationResponse<CreateUserResponse>> CreateAsync(CreateUserRequest request)
+    public async Task<OperationResponse<CreateUserResponse>> CreateAsync(User request)
     {
         if (await _context.Users.AnyAsync(u => u.Email == request.Email))
         {
@@ -60,7 +60,7 @@ public class UserRepository(TaskManagementDbContext context, IMapper mapper) : I
         return OperationResponse<GetUserResponse>.SuccessfulResponse(mapped);
     }
 
-    public async Task<OperationResponse<GetUserResponse>> UpdateAsync(Guid id, UpdateUserRequest request)
+    public async Task<OperationResponse> UpdateAsync(Guid id, User request)
     {
         var user = await _context.Users.FindAsync(id);
         if (user is null)
@@ -78,7 +78,7 @@ public class UserRepository(TaskManagementDbContext context, IMapper mapper) : I
         await _context.SaveChangesAsync();
 
         var mapped = _mapper.Map<GetUserResponse>(user);
-        return OperationResponse<GetUserResponse>.SuccessfulResponse(mapped);
+        return OperationResponse.SuccessfulResponse();
     }
 
     public async Task<OperationResponse<string>> DeleteAsync(Guid id)
