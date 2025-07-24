@@ -18,7 +18,7 @@ public class CommentRepository : ICommentRepository
         _mapper = mapper;
     }
 
-    public async Task<OperationResponse<CreateCommentResponse>> CreateAsync(CreateCommentRequest request)
+    public async Task<OperationResponse<CreateCommentResponse>> CreateAsync(Comment request)
     {
         var userExists = await _context.Users.AnyAsync(u => u.Id == request.UserId);
         if (!userExists)
@@ -28,7 +28,7 @@ public class CommentRepository : ICommentRepository
                 .AddError("User not found");
         }
 
-        var taskExists = await _context.Tasks.AnyAsync(t => t.Id == request.TaskId);
+        var taskExists = await _context.Tasks.AnyAsync(t => t.Id == request.TodoTaskId);
         if (!taskExists)
         {
             return OperationResponse<CreateCommentResponse>
@@ -40,7 +40,7 @@ public class CommentRepository : ICommentRepository
         {
             Id = Guid.NewGuid(),
             UserId = request.UserId,
-            TodoTaskId = request.TaskId,
+            TodoTaskId = request.TodoTaskId,
             Content = request.Content,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -58,37 +58,7 @@ public class CommentRepository : ICommentRepository
         return OperationResponse<CreateCommentResponse>.SuccessfulResponse(response);
     }
 
-    public async Task<OperationResponse<List<GetCommentResponse>>> GetAllForTaskAsync(Guid taskId)
-    {
-        var comments = await _context.Comments
-            .Where(c => c.TodoTaskId == taskId)
-            .Include(c => c.User)
-            .OrderByDescending(c => c.CreatedAt)
-            .ToListAsync();
-
-        var mapped = _mapper.Map<List<GetCommentResponse>>(comments);
-        return OperationResponse<List<GetCommentResponse>>.SuccessfulResponse(mapped);
-    }
-
-    public async Task<OperationResponse<GetCommentResponse>> GetByIdAsync(Guid id)
-    {
-        var comment = await _context.Comments
-            .Include(c => c.User)
-            .Include(c => c.TodoTask)
-            .FirstOrDefaultAsync(c => c.Id == id);
-
-        if (comment is null)
-        {
-            return OperationResponse<GetCommentResponse>
-                .FailedResponse(StatusCode.NotFound)
-                .AddError("Comment not found");
-        }
-
-        var mapped = _mapper.Map<GetCommentResponse>(comment);
-        return OperationResponse<GetCommentResponse>.SuccessfulResponse(mapped);
-    }
-
-    public async Task<OperationResponse<GetCommentResponse>> UpdateAsync(Guid id, UpdateCommentRequest request)
+    public async Task<OperationResponse<GetCommentResponse>> UpdateAsync(Guid id, Comment request)
     {
         var comment = await _context.Comments.FindAsync(id);
         if (comment is null)
@@ -113,7 +83,7 @@ public class CommentRepository : ICommentRepository
         return OperationResponse<GetCommentResponse>.SuccessfulResponse(mapped);
     }
 
-    public async Task<OperationResponse<string>> DeleteAsync(Guid id)
+    public async Task<OperationResponse> DeleteAsync(Guid id)
     {
         var comment = await _context.Comments.FindAsync(id);
         if (comment is null)
@@ -125,6 +95,6 @@ public class CommentRepository : ICommentRepository
 
         _context.Comments.Remove(comment);
         await _context.SaveChangesAsync();
-        return OperationResponse<string>.SuccessfulResponse("Comment deleted successfully");
+        return OperationResponse.SuccessfulResponse();
     }
 }

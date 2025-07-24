@@ -1,13 +1,12 @@
 ﻿using TaskManagement.Application.Comments.Dtos;
 using TaskManagement.Application.Utils;
+using TaskManagement.Domain;
 
 namespace TaskManagement.Application.Comments;
 
 public interface ICommentRepository
 {
-    Task<OperationResponse<GetCommentResponse>> GetByIdAsync(Guid id);
-    Task<OperationResponse<CreateCommentResponse>> CreateAsync(CreateCommentRequest request);
-    Task<OperationResponse<List<GetCommentResponse>>> GetAllForTaskAsync(Guid taskId);
-    Task<OperationResponse<GetCommentResponse>> UpdateAsync(Guid id, UpdateCommentRequest request);
-    Task<OperationResponse<string>> DeleteAsync(Guid id);
+    Task<OperationResponse<CreateCommentResponse>> CreateAsync(Comment request);
+    Task<OperationResponse<GetCommentResponse>> UpdateAsync(Guid id, Comment request);
+    Task<OperationResponse> DeleteAsync(Guid id);
 }

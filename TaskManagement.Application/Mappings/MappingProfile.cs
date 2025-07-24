@@ -33,13 +33,34 @@ public class MappingProfile : Profile
         CreateMap<Comment, CommentDto>()
             .ForMember(dest => dest.Author, opt => opt.MapFrom(src => src.User));
 
+        CreateMap<CreateCommentRequest, Comment>()
+            .ForMember(dest => dest.Content, opt => opt.MapFrom(src => src.Content))
+            .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
+            .ForMember(dest => dest.TodoTaskId, opt => opt.MapFrom(src => src.TaskId))
+            //.ForAllOtherMembers(opt => opt.Ignore());
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.User, opt => opt.Ignore())
+            .ForMember(dest => dest.TodoTask, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore());
+
+        CreateMap<UpdateCommentRequest, Comment>()
+            .ForMember(dest => dest.Content, opt => opt.MapFrom(src => src.Content))
+            .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow))
+            //.ForAllOtherMembers(opt => opt.Ignore());
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.UserId, opt => opt.Ignore())
+            .ForMember(dest => dest.User, opt => opt.Ignore())
+            .ForMember(dest => dest.TodoTaskId, opt => opt.Ignore())
+            .ForMember(dest => dest.TodoTask, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedAt, opt => opt.Ignore());
+
         CreateMap<Label, GetLabelResponse>();
         CreateMap<Label, CreateLabelResponse>();
         CreateMap<Label, LabelDto>()
             .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.CreatedBy));
 
         CreateMap<Comment, GetCommentResponse>()
-            .ForMember(dest => dest.Author, opt => opt.MapFrom(src => src.User));
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id));
 
         CreateMap<Comment, CreateCommentResponse>();
     }
