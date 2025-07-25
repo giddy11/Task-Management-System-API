@@ -1,7 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using TaskManagement.API.Extensions;
 using TaskManagement.Application.UserManagement;
 using TaskManagement.Application.UserManagement.Dtos;
+using TaskManagement.Domain;
+using TaskManagement.Domain.UserManagement;
 
 namespace TaskManagement.API.Controllers;
 
@@ -13,14 +16,17 @@ namespace TaskManagement.API.Controllers;
 public class UserController : ControllerBase
 {
     private readonly IUserRepository _userService;
+    private readonly IMapper _mapper;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="UserController"/> class.
     /// </summary>
     /// <param name="userService">The user repository service for handling user operations.</param>
-    public UserController(IUserRepository userService)
+    /// <param name="mapper"></param>
+    public UserController(IUserRepository userService, IMapper mapper)
     {
         _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+        _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
     /// <summary>
@@ -37,7 +43,8 @@ public class UserController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Create([FromBody] CreateUserRequest request)
     {
-        var response = await _userService.CreateAsync(request);
+        var user = _mapper.Map<User>(request);
+        var response = await _userService.CreateAsync(user);
         return response.ResponseResult();
     }
 
@@ -81,7 +88,6 @@ public class UserController : ControllerBase
     /// <summary>
     /// Updates an existing user.
     /// </summary>
-    /// <param name="id">The unique identifier (GUID) of the user to update.</param>
     /// <param name="request">The updated user details.</param>
     /// <returns>A response indicating the result of the update operation.</returns>
     /// <response code="200">User updated successfully.</response>
@@ -93,9 +99,10 @@ public class UserController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> Update(Guid id, UpdateUserRequest request)
+    public async Task<IActionResult> Update(UpdateUserRequest request)
     {
-        var response = await _userService.UpdateAsync(id, request);
+        var user = _mapper.Map<User>(request);
+        var response = await _userService.UpdateAsync(user);
         return response.ResponseResult();
     }
 

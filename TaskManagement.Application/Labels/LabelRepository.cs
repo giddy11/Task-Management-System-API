@@ -28,7 +28,14 @@ public class LabelRepository : ILabelRepository
                 .AddError("User not found");
         }
 
-        var label = Label.New(request.Name, request.Color, request.CreatedById);
+        var label = new Label
+        {
+            Id = Guid.NewGuid(),
+            Name = request.Name,
+            Color = request.Color,
+            CreatedById = request.CreatedById,
+        };
+
         await _context.Labels.AddAsync(label);
         await _context.SaveChangesAsync();
 
@@ -73,7 +80,9 @@ public class LabelRepository : ILabelRepository
                 .AddError("Label not found");
         }
 
-        label.Update(request.Name, request.Color);
+        label.Name = request.Name;
+        label.Color = request.Color;
+
         _context.Labels.Update(label);
         await _context.SaveChangesAsync();
 
