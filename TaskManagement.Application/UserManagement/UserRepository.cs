@@ -22,7 +22,6 @@ public class UserRepository(TaskManagementDbContext context, IMapper mapper) : I
 
         var user = new User
         {
-            Id = Guid.NewGuid(),
             Email = request.Email,
             FirstName = request.FirstName,
             LastName = request.LastName,

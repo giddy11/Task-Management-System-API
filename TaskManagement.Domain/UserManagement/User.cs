@@ -6,7 +6,7 @@ public class User
 {
     public Guid Id { get; init; }
     public string Email { get; set; } = default!;
-    public string? PasswordHash { get; protected set; }
+    public string? PasswordHash { get; set; }
     public string FirstName { get; set; } = default!;
     public string LastName { get; set; } = default!;
     public IList<TodoTask> TodoTasks { get; set; } = [];
