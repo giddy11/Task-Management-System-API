@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TaskManagement.API.Extensions;
 using TaskManagement.Application.UserManagement;
@@ -13,6 +14,7 @@ namespace TaskManagement.API.Controllers;
 /// </summary>
 [Route("api/[controller]")]
 [ApiController]
+[Authorize(Roles ="Admin")]
 public class UserController : ControllerBase
 {
     private readonly IUserRepository _userService;

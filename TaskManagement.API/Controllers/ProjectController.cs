@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TaskManagement.API.Extensions;
 using TaskManagement.Application.Projects;
 using TaskManagement.Application.Projects.Dtos;
@@ -11,6 +12,7 @@ namespace TaskManagement.API.Controllers;
 /// </summary>
 [Route("api/[controller]")]
 [ApiController]
+[Authorize]
 public class ProjectController : ControllerBase
 {
     private readonly IProjectRepository _projectService;
@@ -36,6 +38,7 @@ public class ProjectController : ControllerBase
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> Create([FromBody] CreateProjectRequest request)
     {
         var response = await _projectService.CreateAsync(request);
@@ -54,6 +57,7 @@ public class ProjectController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [Authorize(Policy = "UserOrAbove")]
     public async Task<IActionResult> GetById(Guid id)
     {
         var response = await _projectService.GetByIdAsync(id);
@@ -73,6 +77,7 @@ public class ProjectController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [Authorize(Policy = "UserOrAbove")]
     public async Task<IActionResult> GetAll(int page = 1, int pageSize = 10)
     {
         var response = await _projectService.GetAllAsync(page, pageSize);
@@ -94,6 +99,7 @@ public class ProjectController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> Update(Guid id, UpdateProjectRequest request)
     {
         var response = await _projectService.UpdateAsync(id, request);
@@ -112,6 +118,7 @@ public class ProjectController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> Delete(Guid id)
     {
         var response = await _projectService.DeleteAsync(id);
@@ -133,6 +140,7 @@ public class ProjectController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> ChangeStatus(Guid id, [FromBody] ProjectStatus status)
     {
         var response = await _projectService.ChangeStatusAsync(id, status);

@@ -11,5 +11,5 @@ public class User
     public string LastName { get; set; } = default!;
     public IList<TodoTask> TodoTasks { get; set; } = [];
     public AccountTypes AccountType { get; set; }
-    public UserStatus UserStatus { get; protected set; } = UserStatus.Active;
+    public UserStatus UserStatus { get; set; } = UserStatus.Active;
 }

@@ -1,18 +1,13 @@
-using AdeAuth.Db;
-using AdeAuth.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-
-//using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
-using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Serialization;
 using TaskManagement.API;
+using TaskManagement.Application.Auth;
 using TaskManagement.Application.Comments;
 using TaskManagement.Application.Labels;
 using TaskManagement.Application.Mappings;
@@ -84,61 +79,39 @@ builder.Services.AddSwaggerGen(options =>
 
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
 builder.Services.AddScoped<ITodoTaskRepository, TodoTaskRepository>();
 builder.Services.AddScoped<ILabelRepository, LabelRepository>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
-
-
 builder.Services.AddAutoMapper(cfg =>
 {
     cfg.AddMaps(typeof(MappingProfile).Assembly);
 });
 
-builder.Services.AddIdentityService<IdentityContext>(options =>
+builder.Services.AddAuthentication(options =>
 {
-    options.UseSqlServer(connectionString!);
-}).AddJwtBearer(s =>
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(options =>
 {
-    s.TokenSecret = builder.Configuration["Jwt:Key"]!;
-    s.AuthenticationScheme = JwtBearerDefaults.AuthenticationScheme;
-    s.ExpirationTime = 30;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
+        ClockSkew = TimeSpan.Zero
+    };
 });
 
-//builder.Services.AddAuthentication(options =>
-//{
-//    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-//    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-//}).AddJwtBearer(options =>
-//{
-//    options.TokenValidationParameters = new TokenValidationParameters
-//    {
-//        ValidateIssuer = true,
-//        ValidateAudience = true,
-//        ValidateLifetime = true,
-//        ValidateIssuerSigningKey = true,
-//        ValidIssuer = builder.Configuration["Jwt:Issuer"],
-//        ValidAudience = builder.Configuration["Jwt:Audience"],
-//        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
-//        ClockSkew = TimeSpan.Zero // Reduce clock skew for token validation
-//    };
-//});
-
-// Configure Authorization (Roles and Policies)
 builder.Services.AddAuthorization(options =>
 {
-    // Role-based Policies using your AccountTypes enum
     options.AddPolicy("AdminOnly", policy => policy.RequireRole(AccountTypes.Admin.ToString()));
-    options.AddPolicy("UserOrAbove", policy => policy.RequireRole(AccountTypes.User.ToString(), AccountTypes.Admin.ToString())); // Example for general access
-
-    // Example of a custom policy: user can only access their own data
-    options.AddPolicy("CanAccessOwnData", policy =>
-    {
-        policy.RequireAuthenticatedUser();
-        policy.RequireClaim(ClaimTypes.NameIdentifier); // Ensure user ID is present
-        // Add a custom requirement and handler for more complex ownership checks
-        // policy.Requirements.Add(new ResourceOwnershipRequirement());
-    });
+    options.AddPolicy("UserOrAbove", policy => policy.RequireRole(AccountTypes.User.ToString(), AccountTypes.Admin.ToString()));
 });
 
 var app = builder.Build();
@@ -147,29 +120,27 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    //app.UseSwaggerUI();
     app.UseSwaggerUI(c =>
     {
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Task Management API V1");
         c.RoutePrefix = string.Empty;
     });
 
-    using (var scope = app.Services.CreateScope())
-    {
-        var services = scope.ServiceProvider;
-        var logger = services.GetRequiredService<ILogger<Program>>();
+    using var scope = app.Services.CreateScope();
+    var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>();
 
-        try
-        {
-            var context = services.GetRequiredService<TaskManagementDbContext>();
-            logger.LogInformation("Migrating database...");
-            context.Database.Migrate();
-            DatabaseSeeder.Seed(context);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "An error occurred while seeding the database.");
-        }
+    try
+    {
+        var context = services.GetRequiredService<TaskManagementDbContext>();
+        var passwordHasher = services.GetRequiredService<IPasswordHasher<User>>();
+        logger.LogInformation("Migrating database...");
+        context.Database.Migrate();
+        DatabaseSeeder.Seed(context, passwordHasher);
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "An error occurred while seeding the database.");
     }
 }
 

@@ -25,6 +25,7 @@ public class UserRepository(TaskManagementDbContext context, IMapper mapper) : I
             Email = request.Email,
             FirstName = request.FirstName,
             LastName = request.LastName,
+            PasswordHash = request.PasswordHash
         };
 
         await _context.Users.AddAsync(user);
@@ -57,6 +58,11 @@ public class UserRepository(TaskManagementDbContext context, IMapper mapper) : I
 
         var mapped = _mapper.Map<GetUserResponse>(user);
         return OperationResponse<GetUserResponse>.SuccessfulResponse(mapped);
+    }
+
+    public async Task<User?> GetUserByEmailAsync(string email)
+    {
+        return await _context.Users.SingleOrDefaultAsync(u => u.Email == email);
     }
 
     public async Task<OperationResponse> UpdateAsync(User request)
