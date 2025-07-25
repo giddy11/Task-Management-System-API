@@ -60,9 +60,9 @@ public class UserRepository(TaskManagementDbContext context, IMapper mapper) : I
         return OperationResponse<GetUserResponse>.SuccessfulResponse(mapped);
     }
 
-    public async Task<OperationResponse> UpdateAsync(Guid id, User request)
+    public async Task<OperationResponse> UpdateAsync(User request)
     {
-        var user = await _context.Users.FindAsync(id);
+        var user = await _context.Users.FindAsync(request.Id);
         if (user is null)
         {
             return OperationResponse<GetUserResponse>
@@ -77,7 +77,6 @@ public class UserRepository(TaskManagementDbContext context, IMapper mapper) : I
         _context.Users.Update(user);
         await _context.SaveChangesAsync();
 
-        var mapped = _mapper.Map<GetUserResponse>(user);
         return OperationResponse.SuccessfulResponse();
     }
 
