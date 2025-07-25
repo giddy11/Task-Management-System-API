@@ -88,7 +88,6 @@ public class UserController : ControllerBase
     /// <summary>
     /// Updates an existing user.
     /// </summary>
-    /// <param name="id">The unique identifier (GUID) of the user to update.</param>
     /// <param name="request">The updated user details.</param>
     /// <returns>A response indicating the result of the update operation.</returns>
     /// <response code="200">User updated successfully.</response>
@@ -100,10 +99,10 @@ public class UserController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> Update(Guid id, UpdateUserRequest request)
+    public async Task<IActionResult> Update(UpdateUserRequest request)
     {
         var user = _mapper.Map<User>(request);
-        var response = await _userService.UpdateAsync(id, user);
+        var response = await _userService.UpdateAsync(user);
         return response.ResponseResult();
     }
 
