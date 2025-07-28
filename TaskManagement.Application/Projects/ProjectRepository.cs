@@ -22,12 +22,16 @@ public class ProjectRepository(TaskManagementDbContext context, IMapper mapper) 
                 .AddError("User not found");
         }
 
-        var project = Project.New(
-            request.Title,
-            request.Description,
-            request.CreatedById,
-            request.StartDate,
-            request.EndDate);
+        var project = new Project
+        {
+            Id = Guid.NewGuid(),
+            Title = request.Title,
+            Description = request.Description,
+            CreatedById = request.CreatedById,
+            StartDate = request.StartDate,
+            EndDate = request.EndDate,
+            ProjectStatus = ProjectStatus.Not_Started,
+        };
 
         await _context.Projects.AddAsync(project);
         await _context.SaveChangesAsync();
@@ -75,7 +79,11 @@ public class ProjectRepository(TaskManagementDbContext context, IMapper mapper) 
                 .AddError("Project not found");
         }
 
-        project.Update(request.Title, request.Description, request.StartDate, request.EndDate);
+        project.Title = request.Title;
+        project.Description = request.Description;
+        project.StartDate = request.StartDate;
+        project.EndDate = request.EndDate;
+
         _context.Projects.Update(project);
         await _context.SaveChangesAsync();
 
@@ -108,7 +116,8 @@ public class ProjectRepository(TaskManagementDbContext context, IMapper mapper) 
                 .AddError("Project not found");
         }
 
-        project.ChangeStatus(status);
+        project.ProjectStatus = status;
+
         _context.Projects.Update(project);
         await _context.SaveChangesAsync();
 

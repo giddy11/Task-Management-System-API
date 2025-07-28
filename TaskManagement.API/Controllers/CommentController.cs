@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using TaskManagement.API.Extensions;
 using TaskManagement.Application.Comments;
 using TaskManagement.Application.Comments.Dtos;
+using TaskManagement.Domain;
 
 namespace TaskManagement.API.Controllers;
 
@@ -13,32 +15,17 @@ namespace TaskManagement.API.Controllers;
 public class CommentController : ControllerBase
 {
     private readonly ICommentRepository _commentService;
+    private readonly IMapper _mapper;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CommentController"/> class.
     /// </summary>
     /// <param name="commentService">The comment repository service for handling comment operations.</param>
-    public CommentController(ICommentRepository commentService)
+    /// <param name="mapper"></param>
+    public CommentController(ICommentRepository commentService, IMapper mapper)
     {
         _commentService = commentService ?? throw new ArgumentNullException(nameof(commentService));
-    }
-
-    /// <summary>
-    /// Retrieves a comment by its unique identifier.
-    /// </summary>
-    /// <param name="id">The unique identifier (GUID) of the comment.</param>
-    /// <returns>The comment details if found.</returns>
-    /// <response code="200">Comment retrieved successfully.</response>
-    /// <response code="404">Comment not found.</response>
-    /// <response code="500">Internal server error.</response>
-    [HttpGet("{id}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetById(Guid id)
-    {
-        var response = await _commentService.GetByIdAsync(id);
-        return response.ResponseResult();
+        _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
     /// <summary>
@@ -55,25 +42,8 @@ public class CommentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Create([FromBody] CreateCommentRequest request)
     {
-        var response = await _commentService.CreateAsync(request);
-        return response.ResponseResult();
-    }
-
-    /// <summary>
-    /// Retrieves all comments for a specific to-do task.
-    /// </summary>
-    /// <param name="taskId">The unique identifier (GUID) of the task.</param>
-    /// <returns>A list of comments associated with the task.</returns>
-    /// <response code="200">Comments retrieved successfully.</response>
-    /// <response code="404">Task not found.</response>
-    /// <response code="500">Internal server error.</response>
-    [HttpGet("task/{taskId}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetAllForTask(Guid taskId)
-    {
-        var response = await _commentService.GetAllForTaskAsync(taskId);
+        var comment = _mapper.Map<Comment>(request);
+        var response = await _commentService.CreateAsync(comment);
         return response.ResponseResult();
     }
 
@@ -94,7 +64,8 @@ public class CommentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCommentRequest request)
     {
-        var response = await _commentService.UpdateAsync(id, request);
+        var comment = _mapper.Map<Comment>(request);
+        var response = await _commentService.UpdateAsync(id, comment);
         return response.ResponseResult();
     }
 
