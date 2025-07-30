@@ -7,13 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Text.Json.Serialization;
 using TaskManagement.API;
-using TaskManagement.Application.Auth;
-using TaskManagement.Application.Comments;
-using TaskManagement.Application.Labels;
-using TaskManagement.Application.Mappings;
-using TaskManagement.Application.Projects;
-using TaskManagement.Application.TodoTasks;
-using TaskManagement.Application.UserManagement;
+using TaskManagement.API.Extensions;
 using TaskManagement.Domain.UserManagement;
 using TaskManagement.Persistence;
 
@@ -30,6 +24,7 @@ builder.Services.AddControllers()
 builder.Services.AddControllers();
 
 var connectionString = builder.Configuration.GetConnectionString("TaskManagementDbConnection");
+//builder.Services.AddPersistenceServices(connectionString!);
 builder.Services.AddDbContext<TaskManagementDbContext>(options => options.UseSqlServer(connectionString));
 
 builder.Services.AddEndpointsApiExplorer();
@@ -77,17 +72,17 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IAuthRepository, AuthRepository>();
-builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
-builder.Services.AddScoped<ITodoTaskRepository, TodoTaskRepository>();
-builder.Services.AddScoped<ILabelRepository, LabelRepository>();
-builder.Services.AddScoped<ICommentRepository, CommentRepository>();
-builder.Services.AddAutoMapper(cfg =>
-{
-    cfg.AddMaps(typeof(MappingProfile).Assembly);
-});
+//builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+////builder.Services.AddScoped<IUserRepository, UserRepository>();
+//builder.Services.AddScoped<IAuthRepository, AuthRepository>();
+////builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
+//builder.Services.AddScoped<ITodoTaskRepository, TodoTaskRepository>();
+//builder.Services.AddScoped<ILabelRepository, LabelRepository>();
+//builder.Services.AddScoped<ICommentRepository, CommentRepository>();
+//builder.Services.AddAutoMapper(cfg =>
+//{
+//    cfg.AddMaps(typeof(MappingProfile).Assembly);
+//});
 
 builder.Services.AddAuthentication(options =>
 {
@@ -114,7 +109,8 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("UserOrAbove", policy => policy.RequireRole(AccountTypes.User.ToString(), AccountTypes.Admin.ToString()));
 });
 
-var app = builder.Build();
+//var app = builder.Build();
+var app = builder.ConfigureServices(connectionString!);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

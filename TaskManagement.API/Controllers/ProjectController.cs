@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TaskManagement.API.Extensions;
-using TaskManagement.Application.Projects;
-using TaskManagement.Application.Projects.Dtos;
+using TaskManagement.Application.Contracts.Persistence;
+using TaskManagement.Application.Features.Projects.Dtos;
+using TaskManagement.Application.Utils;
 using TaskManagement.Domain.Projects;
 
 namespace TaskManagement.API.Controllers;
@@ -10,20 +12,12 @@ namespace TaskManagement.API.Controllers;
 /// <summary>
 /// Handles project management operations such as creating, retrieving, updating, deleting, and changing the status of projects.
 /// </summary>
-[Route("api/[controller]")]
-[ApiController]
-[Authorize]
-public class ProjectController : ControllerBase
+[Route("project")]
+//[Authorize]
+public class ProjectController : BaseController
 {
-    private readonly IProjectRepository _projectService;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="ProjectController"/> class.
-    /// </summary>
-    /// <param name="projectService">The project repository service for handling project operations.</param>
-    public ProjectController(IProjectRepository projectService)
+    public ProjectController(IUnitOfWork unitOfWork, IMapper mapper) : base(unitOfWork, mapper)
     {
-        _projectService = projectService ?? throw new ArgumentNullException(nameof(projectService));
     }
 
     /// <summary>
@@ -38,10 +32,25 @@ public class ProjectController : ControllerBase
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    [Authorize(Policy = "AdminOnly")]
-    public async Task<IActionResult> Create([FromBody] CreateProjectRequest request)
+    //[Authorize(Policy = "AdminOnly")]
+    public async Task<IActionResult> Create([FromBody] ProjectCreateRequest request)
     {
-        var response = await _projectService.CreateAsync(request);
+        if (request == null)
+        {
+            return BadRequest("Project request cannot be null.");
+        }
+        if (request.StartDate >= request.EndDate)
+        {
+            return BadRequest("Start date must be earlier than end date.");
+        }
+        var project = Mapper.Map<Project>(request);
+        await UnitOfWork.ProjectRepository.AddAsync(project);
+        var response = await UnitOfWork.SaveChangesAsync();
+        if (response.IsSuccessful)
+        {
+            var projectDto = Mapper.Map<ProjectFetchResponse>(project);
+            return CreatedAtAction(nameof(GetProjectById), new { id = projectDto.Id }, projectDto);
+        }
         return response.ResponseResult();
     }
 
@@ -54,13 +63,23 @@ public class ProjectController : ControllerBase
     /// <response code="404">Project not found.</response>
     /// <response code="500">Internal server error.</response>
     [HttpGet("{id}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProjectFetchResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    [Authorize(Policy = "UserOrAbove")]
-    public async Task<IActionResult> GetById(Guid id)
+    //[Authorize(Policy = "UserOrAbove")]
+    public async Task<IActionResult> GetProjectById(Guid id)
     {
-        var response = await _projectService.GetByIdAsync(id);
+        if (id == Guid.Empty)
+        {
+            return BadRequest("Project ID cannot be empty.");
+        }
+        var project = await UnitOfWork.ProjectRepository.GetByIdAsync(id);
+        if (project == null)
+        {
+            return NotFound();
+        }
+        var projectDto = Mapper.Map<ProjectFetchResponse>(project);
+        var response = OperationResponse<ProjectFetchResponse>.SuccessfulResponse(projectDto);
         return response.ResponseResult();
     }
 
@@ -74,13 +93,19 @@ public class ProjectController : ControllerBase
     /// <response code="400">Invalid pagination parameters.</response>
     /// <response code="500">Internal server error.</response>
     [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType<IReadOnlyList<ProjectFetchResponse>>(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    [Authorize(Policy = "UserOrAbove")]
-    public async Task<IActionResult> GetAll(int page = 1, int pageSize = 10)
+    //[Authorize(Policy = "UserOrAbove")]
+    public async Task<IActionResult> GetAll()
     {
-        var response = await _projectService.GetAllAsync(page, pageSize);
+        var projects = await UnitOfWork.ProjectRepository.GetAllAsync();
+        if (projects == null || !projects.Any())
+        {
+            return NotFound("No projects found.");
+        }
+        var projectDtos = Mapper.Map<IReadOnlyList<ProjectFetchResponse>>(projects);
+        var response = OperationResponse<IReadOnlyList<ProjectFetchResponse>>.SuccessfulResponse(projectDtos);
         return response.ResponseResult();
     }
 
@@ -99,10 +124,19 @@ public class ProjectController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    [Authorize(Policy = "AdminOnly")]
-    public async Task<IActionResult> Update(Guid id, UpdateProjectRequest request)
+    //[Authorize(Policy = "AdminOnly")]
+    public async Task<IActionResult> Update(Guid id, ProjectUpdateRequest request)
     {
-        var response = await _projectService.UpdateAsync(id, request);
+        var project = await UnitOfWork.ProjectRepository.GetByIdAsync(id);
+        if (project == null)
+        {
+            return NotFound();
+        }
+        // Map the request to the existing project
+        Mapper.Map(request, project);
+
+        await UnitOfWork.ProjectRepository.UpdateAsync(project);
+        var response = await UnitOfWork.SaveChangesAsync();
         return response.ResponseResult();
     }
 
@@ -118,11 +152,18 @@ public class ProjectController : ControllerBase
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    [Authorize(Policy = "AdminOnly")]
+    //[Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var response = await _projectService.DeleteAsync(id);
-        return response.ResponseResult();
+        var project = await UnitOfWork.ProjectRepository.GetByIdAsync(id);
+        if (project == null)
+        {
+            return NotFound();
+        }
+
+        await UnitOfWork.ProjectRepository.DeleteAsync(project);
+        await UnitOfWork.SaveChangesAsync();
+        return NoContent();
     }
 
     /// <summary>
@@ -140,10 +181,21 @@ public class ProjectController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    [Authorize(Policy = "AdminOnly")]
+    //[Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> ChangeStatus(Guid id, [FromBody] ProjectStatus status)
     {
-        var response = await _projectService.ChangeStatusAsync(id, status);
+        var project = await UnitOfWork.ProjectRepository.GetByIdAsync(id);
+        if (project == null)
+        {
+            return NotFound();
+        }
+        if (!Enum.IsDefined(typeof(ProjectStatus), status))
+        {
+            return BadRequest("Invalid project status provided.");
+        }
+        project.ProjectStatus = status;
+        await UnitOfWork.ProjectRepository.UpdateAsync(project);
+        var response = await UnitOfWork.SaveChangesAsync();
         return response.ResponseResult();
     }
 }

@@ -1,15 +1,15 @@
 ﻿using AutoMapper;
-using TaskManagement.Application.Comments.Dtos;
-using TaskManagement.Application.Labels.Dtos;
-using TaskManagement.Application.Projects.Dtos;
-using TaskManagement.Application.TodoTasks.Dtos;
-using TaskManagement.Application.UserManagement.Dtos;
+using TaskManagement.Application.Features.Comments.Dtos;
+using TaskManagement.Application.Features.Labels.Dtos;
+using TaskManagement.Application.Features.Projects.Dtos;
+using TaskManagement.Application.Features.TodoTasks.Dtos;
+using TaskManagement.Application.Features.UserManagement.Dtos;
 using TaskManagement.Domain;
 using TaskManagement.Domain.Projects;
 using TaskManagement.Domain.TodoTasks;
 using TaskManagement.Domain.UserManagement;
 
-namespace TaskManagement.Application.Mappings;
+namespace TaskManagement.Application.Features.Mappings;
 
 public class MappingProfile : Profile
 {
@@ -41,12 +41,12 @@ public class MappingProfile : Profile
         CreateMap<User, GetUserResponse>();
         CreateMap<User, CreateUserResponse>();
 
-        CreateMap<Project, CreateProjectResponse>();
-        CreateMap<Project, GetProjectResponse>();
+        CreateMap<Project, ProjectCreateResponse>();
+        CreateMap<Project, ProjectFetchResponse>();
 
-        CreateMap<TodoTask, CreateTodoTaskResponse>();
+        CreateMap<TodoTask, TodoTaskCreateResponse>();
         CreateMap<User, UserDto>(); 
-        CreateMap<TodoTask, GetTodoTaskResponse>()
+        CreateMap<TodoTask, TodoTaskFetchResponse>()
             .ForMember(dest => dest.Labels, opt => opt.MapFrom(src => src.Labels))
             .ForMember(dest => dest.Assignees, opt => opt.MapFrom(src => src.Assignees))
             .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.CreatedBy))
@@ -67,7 +67,7 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.TodoTask, opt => opt.Ignore())
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore());
 
-        CreateMap<UpdateCommentRequest, Comment>()
+        CreateMap<CommentUpdateRequest, Comment>()
             .ForMember(dest => dest.Content, opt => opt.MapFrom(src => src.Content))
             .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow))
             //.ForAllOtherMembers(opt => opt.Ignore());
@@ -78,14 +78,14 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.TodoTask, opt => opt.Ignore())
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore());
 
-        CreateMap<Label, GetLabelResponse>();
-        CreateMap<Label, CreateLabelResponse>();
+        CreateMap<Label, LabelFetchResponse>();
+        CreateMap<Label, LabelCreateResponse>();
         CreateMap<Label, LabelDto>()
             .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.CreatedBy));
 
-        CreateMap<Comment, GetCommentResponse>()
+        CreateMap<Comment, CommentFetchResponse>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id));
 
-        CreateMap<Comment, CreateCommentResponse>();
+        CreateMap<Comment, CommentCreateResponse>();
     }
 }

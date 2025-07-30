@@ -8,4 +8,9 @@ public class UserRepository : Repository<User>, IUserRepository
     public UserRepository(TaskManagementDbContext context) : base(context)
     {
     }
+
+    public Task<User?> GetUserByEmailAsync(string email)
+    {
+        throw new NotImplementedException();
+    }
 }
