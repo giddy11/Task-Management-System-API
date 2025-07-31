@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TaskManagement.API.Extensions;
 using TaskManagement.Application.Contracts.Persistence;
@@ -12,7 +13,7 @@ namespace TaskManagement.API.Controllers;
 /// Handles label management operations such as creating, retrieving, updating, and deleting labels.
 /// </summary>
 [Route("label")]
-//[Authorize]
+[Authorize(Roles = "Admin")]
 public class LabelController : BaseController
 {
     public LabelController(IUnitOfWork unitOfWork, IMapper mapper, ILogger<LabelController> logger) : base(unitOfWork, mapper, logger)

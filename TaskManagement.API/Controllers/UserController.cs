@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TaskManagement.API.Extensions;
 using TaskManagement.Application.Contracts.Persistence;
@@ -12,7 +13,8 @@ namespace TaskManagement.API.Controllers;
 /// Handles user management operations such as creating, retrieving, updating, deleting, and changing the status of users.
 /// </summary>
 [Route("user")]
-//[Authorize]
+[ApiController]
+[Authorize(Roles = "Admin")]
 public class UserController : BaseController
 {
     public UserController(IUnitOfWork unitOfWork, IMapper mapper, ILogger<UserController> logger) : base(unitOfWork, mapper, logger)

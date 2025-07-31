@@ -72,18 +72,6 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-//builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
-////builder.Services.AddScoped<IUserRepository, UserRepository>();
-//builder.Services.AddScoped<IAuthRepository, AuthRepository>();
-////builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
-//builder.Services.AddScoped<ITodoTaskRepository, TodoTaskRepository>();
-//builder.Services.AddScoped<ILabelRepository, LabelRepository>();
-//builder.Services.AddScoped<ICommentRepository, CommentRepository>();
-//builder.Services.AddAutoMapper(cfg =>
-//{
-//    cfg.AddMaps(typeof(MappingProfile).Assembly);
-//});
-
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -103,11 +91,9 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("AdminOnly", policy => policy.RequireRole(AccountTypes.Admin.ToString()));
-    options.AddPolicy("UserOrAbove", policy => policy.RequireRole(AccountTypes.User.ToString(), AccountTypes.Admin.ToString()));
-});
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("AdminOnly", policy => policy.RequireRole(AccountTypes.Admin.ToString()))
+    .AddPolicy("UserOrAbove", policy => policy.RequireRole(AccountTypes.User.ToString(), AccountTypes.Admin.ToString()));
 
 //var app = builder.Build();
 var app = builder.ConfigureServices(connectionString!);

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TaskManagement.API.Extensions;
 using TaskManagement.Application.Contracts.Persistence;
@@ -12,7 +13,7 @@ namespace TaskManagement.API.Controllers;
 /// Handles TodoTask management operations such as creating, retrieving, updating, deleting, changing status, and assigning labels.
 /// </summary>
 [Route("todo-task")]
-//[Authorize]
+[Authorize]
 public class TodoTaskController : BaseController
 {
     public TodoTaskController(IUnitOfWork unitOfWork, IMapper mapper, ILogger<TodoTaskController> logger) : base(unitOfWork, mapper, logger)

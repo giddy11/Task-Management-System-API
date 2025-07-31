@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TaskManagement.API.Extensions;
 using TaskManagement.Application.Contracts.Persistence;
@@ -12,7 +13,7 @@ namespace TaskManagement.API.Controllers;
 /// Handles project management operations such as creating, retrieving, updating, deleting, and changing the status of projects.
 /// </summary>
 [Route("project")]
-//[Authorize]
+[Authorize]
 public class ProjectController : BaseController
 {
     public ProjectController(IUnitOfWork unitOfWork, IMapper mapper, ILogger<ProjectController> logger) : base(unitOfWork, mapper, logger)
@@ -32,6 +33,7 @@ public class ProjectController : BaseController
     [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status500InternalServerError)]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> Create([FromBody] ProjectCreateRequest request)
     {
         try
@@ -160,6 +162,7 @@ public class ProjectController : BaseController
     [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status500InternalServerError)]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> Update(Guid id, [FromBody] ProjectUpdateRequest request)
     {
         try
@@ -210,6 +213,7 @@ public class ProjectController : BaseController
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status500InternalServerError)]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> Delete(Guid id)
     {
         try
@@ -247,6 +251,7 @@ public class ProjectController : BaseController
     [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status500InternalServerError)]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> ChangeStatus(Guid id, [FromBody] ProjectStatus status)
     {
         try

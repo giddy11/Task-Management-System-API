@@ -1,11 +1,11 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TaskManagement.API.Extensions;
 using TaskManagement.Application.Contracts.Persistence;
 using TaskManagement.Application.Features.Comments.Dtos;
 using TaskManagement.Application.Utils;
 using TaskManagement.Domain;
-using TaskManagement.Domain.TodoTasks;
 
 namespace TaskManagement.API.Controllers;
 
@@ -13,7 +13,7 @@ namespace TaskManagement.API.Controllers;
 /// Handles comment management operations such as creating, retrieving, updating, and deleting comments.
 /// </summary>
 [Route("comment")]
-//[Authorize]
+[Authorize]
 public class CommentController : BaseController
 {
     public CommentController(IUnitOfWork unitOfWork, IMapper mapper, ILogger<CommentController> logger) : base(unitOfWork, mapper, logger)
