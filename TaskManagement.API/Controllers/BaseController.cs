@@ -8,13 +8,15 @@ namespace TaskManagement.API.Controllers
     [ApiController]
     public abstract class BaseController : ControllerBase
     {
-        protected BaseController(IUnitOfWork unitOfWork, IMapper mapper)
+        protected BaseController(IUnitOfWork unitOfWork, IMapper mapper, ILogger logger)
         {
             UnitOfWork = unitOfWork;
             Mapper = mapper;
+            Logger = logger;
         }
 
         public IUnitOfWork UnitOfWork { get; set; }
         public IMapper Mapper { get; set; }
+        public ILogger Logger { get; set; }
     }
 }

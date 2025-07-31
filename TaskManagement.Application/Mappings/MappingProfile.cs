@@ -41,6 +41,29 @@ public class MappingProfile : Profile
         CreateMap<User, GetUserResponse>();
         CreateMap<User, CreateUserResponse>();
 
+        // Project
+        CreateMap<ProjectCreateRequest, Project>()
+            .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Title))
+            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
+            .ForMember(dest => dest.CreatedById, opt => opt.MapFrom(src => src.CreatedById))
+            .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.StartDate))
+            .ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => src.EndDate))
+            .ForMember(dest => dest.ProjectStatus, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedBy, opt => opt.Ignore())
+            .ForMember(dest => dest.TodoTasks, opt => opt.Ignore());
+
+        CreateMap<ProjectUpdateRequest, Project>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+            .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.Title))
+            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
+            .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.StartDate))
+            .ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => src.EndDate))
+            .ForMember(dest => dest.ProjectStatus, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedById, opt => opt.Ignore())
+            .ForMember(dest => dest.CreatedBy, opt => opt.Ignore())
+            .ForMember(dest => dest.TodoTasks, opt => opt.Ignore());
+
+
         CreateMap<Project, ProjectCreateResponse>();
         CreateMap<Project, ProjectFetchResponse>();
 
