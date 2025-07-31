@@ -15,7 +15,7 @@ public class MappingProfile : Profile
 {
     public MappingProfile()
     {
-        CreateMap<CreateUserRequest, User>()
+        CreateMap<UserCreateRequest, User>()
             .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
             .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.FirstName))
             .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.LastName))
@@ -28,7 +28,7 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.AccountType, opt => opt.Ignore())
             .ForMember(dest => dest.UserStatus, opt => opt.Ignore());
 
-        CreateMap<UpdateUserRequest, User>()
+        CreateMap<UserUpdateRequest, User>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email))
             .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.FirstName))
@@ -38,8 +38,8 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.PasswordHash, opt => opt.Ignore())
             .ForMember(dest => dest.TodoTasks, opt => opt.Ignore());
 
-        CreateMap<User, GetUserResponse>();
-        CreateMap<User, CreateUserResponse>();
+        CreateMap<User, UserFetchResponse>();
+        CreateMap<User, UserCreateResponse>();
 
         // Project
         CreateMap<ProjectCreateRequest, Project>()

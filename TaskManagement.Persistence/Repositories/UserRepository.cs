@@ -1,16 +1,25 @@
-﻿using TaskManagement.Application.Contracts.Persistence;
+﻿using Microsoft.EntityFrameworkCore;
+using TaskManagement.Application.Contracts.Persistence;
 using TaskManagement.Domain.UserManagement;
 
 namespace TaskManagement.Persistence.Repositories;
 
 public class UserRepository : Repository<User>, IUserRepository
 {
-    public UserRepository(TaskManagementDbContext context) : base(context)
+    public UserRepository(TaskManagementDbContext dbContext) : base(dbContext)
     {
+        _dbContext = dbContext;
     }
 
-    public Task<User?> GetUserByEmailAsync(string email)
+    public async Task<User?> GetUserByEmailAsync(string email)
     {
-        throw new NotImplementedException();
+        if (string.IsNullOrWhiteSpace(email))
+            return null;
+
+        return await _dbContext.Set<User>()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Email == email);
     }
+
+    protected readonly TaskManagementDbContext _dbContext;
 }

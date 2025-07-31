@@ -2,7 +2,7 @@
 
 namespace TaskManagement.Application.Features.UserManagement.Dtos;
 
-public class CreateUserResponse
+public class UserCreateResponse
 {
     public Guid Id { get; set; }
 }

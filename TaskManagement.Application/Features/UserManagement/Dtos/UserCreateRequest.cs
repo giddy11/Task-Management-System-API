@@ -3,7 +3,7 @@ using TaskManagement.Domain.UserManagement;
 
 namespace TaskManagement.Application.Features.UserManagement.Dtos;
 
-public class CreateUserRequest
+public class UserCreateRequest
 {
     public string Email { get; set; } = default!;
     public string FirstName { get; set; } = default!;
