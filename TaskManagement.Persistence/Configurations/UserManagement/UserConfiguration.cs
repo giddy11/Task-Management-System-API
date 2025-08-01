@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TaskManagement.Domain.UserManagement;
 using TaskManagement.Persistence.Utils;
 
-namespace TaskManagement.Persistence.Configurations;
+namespace TaskManagement.Persistence.Configurations.UserManagement;
 
 public class UserConfiguration : IEntityTypeConfiguration<User>
 {
