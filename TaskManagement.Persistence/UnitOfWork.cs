@@ -35,6 +35,10 @@ public class UnitOfWork : IUnitOfWork
     public IUserRepository UserRepository =>
         _userRepository ??= new UserRepository(_dbContext);
 
+    private IRefreshTokenRepository? _refreshTokenRepository;
+    public IRefreshTokenRepository RefreshTokenRepository =>
+        _refreshTokenRepository ??= new RefreshTokenRepository(_dbContext);
+
     public async Task<OperationResponse> SaveChangesAsync()
     {
         try

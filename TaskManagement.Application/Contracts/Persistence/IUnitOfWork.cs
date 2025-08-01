@@ -9,5 +9,6 @@ public interface IUnitOfWork
     IProjectRepository ProjectRepository { get; }
     ITodoTaskRepository TodoTaskRepository { get; }
     IUserRepository UserRepository { get; }
+    IRefreshTokenRepository RefreshTokenRepository { get; }
     Task<OperationResponse> SaveChangesAsync();
 }

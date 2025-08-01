@@ -56,6 +56,7 @@ public class UserRepository : Repository<User>, IUserRepository
     public async Task UpdateRefreshTokenAsync(RefreshToken refreshToken)
     {
         _dbContext.RefreshTokens.Update(refreshToken);
+        await _dbContext.SaveChangesAsync();
     }
 
     protected readonly TaskManagementDbContext _dbContext;
