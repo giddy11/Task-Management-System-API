@@ -91,6 +91,11 @@ public class ProjectController : BaseController
     }
 
 
+    /// <summary>
+    /// Retrieves a project by its ID.
+    /// </summary>
+    /// <param name="id">The ID of the project to retrieve.</param>
+    /// <returns>An IActionResult containing the project details.</returns>
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(ProjectFetchResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status400BadRequest)]
@@ -128,6 +133,10 @@ public class ProjectController : BaseController
         }
     }
 
+    /// <summary>
+    /// Retrieves all projects.
+    /// </summary>
+    /// <returns>An IActionResult containing a list of all projects.</returns>
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<ProjectFetchResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status404NotFound)]
@@ -157,6 +166,12 @@ public class ProjectController : BaseController
         }
     }
 
+    /// <summary>
+    /// Updates a project by its ID.
+    /// </summary>
+    /// <param name="id">The ID of the project to update.</param>
+    /// <param name="request">The updated project details.</param>
+    /// <returns>An IActionResult indicating the result of the update operation.</returns>
     [HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status400BadRequest)]
@@ -209,6 +224,11 @@ public class ProjectController : BaseController
         }
     }
 
+    /// <summary>
+    /// Deletes a project by its ID.
+    /// </summary>
+    /// <param name="id">The ID of the project to delete.</param>
+    /// <returns>An IActionResult indicating the result of the delete operation.</returns>
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status404NotFound)]
@@ -246,6 +266,12 @@ public class ProjectController : BaseController
         }
     }
 
+    /// <summary>
+    /// Changes the status of a project.
+    /// </summary>
+    /// <param name="id">The ID of the project to update.</param>
+    /// <param name="status">The new status for the project.</param>
+    /// <returns>An IActionResult indicating the result of the update operation.</returns>
     [HttpPatch("{id}/status")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status400BadRequest)]
