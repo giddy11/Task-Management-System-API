@@ -1,89 +1,182 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TaskManagement.API.Extensions;
-using TaskManagement.Application.Comments;
-using TaskManagement.Application.Comments.Dtos;
+using TaskManagement.Application.Contracts.Persistence;
+using TaskManagement.Application.Features.Comments.Dtos;
+using TaskManagement.Application.Utils;
 using TaskManagement.Domain;
 
 namespace TaskManagement.API.Controllers;
 
 /// <summary>
-/// Handles operations for managing comments, including creation, retrieval, updating, and deletion.
+/// Handles comment management operations such as creating, retrieving, updating, and deleting comments.
 /// </summary>
-[Route("api/[controller]")]
-[ApiController]
-public class CommentController : ControllerBase
+[Route("comment")]
+[Authorize]
+public class CommentController : BaseController
 {
-    private readonly ICommentRepository _commentService;
-    private readonly IMapper _mapper;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="CommentController"/> class.
-    /// </summary>
-    /// <param name="commentService">The comment repository service for handling comment operations.</param>
-    /// <param name="mapper"></param>
-    public CommentController(ICommentRepository commentService, IMapper mapper)
+    public CommentController(IUnitOfWork unitOfWork, IMapper mapper, ILogger<CommentController> logger) : base(unitOfWork, mapper, logger)
     {
-        _commentService = commentService ?? throw new ArgumentNullException(nameof(commentService));
-        _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
     }
 
     /// <summary>
     /// Creates a new comment.
     /// </summary>
-    /// <param name="request">The request containing details for the new comment.</param>
-    /// <returns>A response indicating the result of the create operation.</returns>
-    /// <response code="201">Comment created successfully.</response>
-    /// <response code="400">Invalid request data.</response>
-    /// <response code="500">Internal server error.</response>
+    /// <param name="request">The comment creation request.</param>
+    /// <returns>An IActionResult representing the result of the operation.</returns>
+    /// <remarks>
+    /// This endpoint creates a new comment for a specific task.
+    /// </remarks>
     [HttpPost]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(CommentCreateResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Create([FromBody] CreateCommentRequest request)
     {
-        var comment = _mapper.Map<Comment>(request);
-        var response = await _commentService.CreateAsync(comment);
-        return response.ResponseResult();
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return OperationResponse.FailedResponse(Application.Utils.StatusCode.BadRequest)
+                    .AddErrors(errors)
+                    .ResponseResult();
+            }
+
+            // Check if user exists
+            var userExists = await UnitOfWork.UserRepository.GetByIdAsync(request.UserId);
+            if (userExists == null)
+            {
+                return OperationResponse.FailedResponse(Application.Utils.StatusCode.NotFound)
+                    .AddError($"User with ID {request.UserId} not found")
+                    .ResponseResult();
+            }
+
+            // Check if task exists
+            var taskExists = await UnitOfWork.TodoTaskRepository.GetByIdAsync(request.TaskId);
+            if (taskExists == null)
+            {
+                return OperationResponse.FailedResponse(Application.Utils.StatusCode.NotFound)
+                    .AddError($"Task with ID {request.TaskId} not found")
+                    .ResponseResult();
+            }
+
+            var comment = Mapper.Map<Comment>(request);
+            await UnitOfWork.CommentRepository.AddAsync(comment);
+            var saveResult = await UnitOfWork.SaveChangesAsync();
+
+            if (!saveResult.IsSuccessful)
+            {
+                return saveResult.ResponseResult();
+            }
+
+            var commentDto = Mapper.Map<CommentCreateResponse>(comment);
+            return OperationResponse<CommentCreateResponse>.CreatedResponse(commentDto)
+                .ResponseResult();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error creating comment");
+            return OperationResponse.FailedResponse(Application.Utils.StatusCode.InternalServerError)
+                .AddError("An error occurred while creating the comment")
+                .ResponseResult();
+        }
     }
 
     /// <summary>
     /// Updates an existing comment.
     /// </summary>
-    /// <param name="id">The unique identifier (GUID) of the comment to update.</param>
-    /// <param name="request">The updated comment details.</param>
-    /// <returns>A response indicating the result of the update operation.</returns>
-    /// <response code="200">Comment updated successfully.</response>
-    /// <response code="400">Invalid request data or ID mismatch.</response>
-    /// <response code="404">Comment not found.</response>
-    /// <response code="500">Internal server error.</response>
+    /// <param name="id">The ID of the comment to update.</param>
+    /// <param name="request">The comment update request.</param>
+    /// <returns>An IActionResult representing the result of the operation.</returns>
     [HttpPut("{id}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCommentRequest request)
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> Update(Guid id, [FromBody] CommentUpdateRequest request)
     {
-        var comment = _mapper.Map<Comment>(request);
-        var response = await _commentService.UpdateAsync(id, comment);
-        return response.ResponseResult();
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return OperationResponse.FailedResponse(Application.Utils.StatusCode.BadRequest)
+                    .AddErrors(errors)
+                    .ResponseResult();
+            }
+
+            var existingComment = await UnitOfWork.CommentRepository.GetByIdAsync(id);
+            if (existingComment == null)
+            {
+                return OperationResponse.FailedResponse(Application.Utils.StatusCode.NotFound)
+                    .AddError($"Comment with ID {id} not found")
+                    .ResponseResult();
+            }
+
+            Mapper.Map(request, existingComment);
+            await UnitOfWork.CommentRepository.UpdateAsync(existingComment);
+
+            var saveResult = await UnitOfWork.SaveChangesAsync();
+            return saveResult.ResponseResult();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error updating comment with ID {CommentId}", id);
+            return OperationResponse.FailedResponse(Application.Utils.StatusCode.InternalServerError)
+                .AddError("An error occurred while updating the comment")
+                .ResponseResult();
+        }
     }
 
     /// <summary>
-    /// Deletes a comment by its unique identifier.
+    /// Deletes a comment by ID.
     /// </summary>
-    /// <param name="id">The unique identifier (GUID) of the comment to delete.</param>
-    /// <returns>A response indicating the result of the delete operation.</returns>
-    /// <response code="204">Comment deleted successfully.</response>
-    /// <response code="404">Comment not found.</response>
-    /// <response code="500">Internal server error.</response>
+    /// <param name="id">The ID of the comment to delete.</param>
+    /// <returns>An IActionResult representing the result of the operation.</returns>
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var response = await _commentService.DeleteAsync(id);
-        return response.ResponseResult();
+        try
+        {
+            var comment = await UnitOfWork.CommentRepository.GetByIdAsync(id);
+            if (comment == null)
+            {
+                return OperationResponse.FailedResponse(Application.Utils.StatusCode.NotFound)
+                    .AddError($"Comment with ID {id} not found")
+                    .ResponseResult();
+            }
+
+            await UnitOfWork.CommentRepository.DeleteAsync(comment);
+            var saveResult = await UnitOfWork.SaveChangesAsync();
+
+            if (!saveResult.IsSuccessful)
+            {
+                return saveResult.ResponseResult();
+            }
+
+            return OperationResponse.SuccessfulResponse()
+                .ResponseResult();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error deleting comment with ID {CommentId}", id);
+            return OperationResponse.FailedResponse(Application.Utils.StatusCode.InternalServerError)
+                .AddError("An error occurred while deleting the comment")
+                .ResponseResult();
+        }
     }
 }
