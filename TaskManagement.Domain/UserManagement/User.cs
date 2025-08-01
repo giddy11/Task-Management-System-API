@@ -11,5 +11,9 @@ public class User
     public string LastName { get; set; } = default!;
     public IList<TodoTask> TodoTasks { get; set; } = [];
     public AccountTypes AccountType { get; set; }
+    public string? PasswordResetToken { get; set; }
+    public DateTime? PasswordResetTokenExpiry { get; set; }
+    public string? VerificationCode { get; set; } // For email verification
+    public DateTime? VerificationCodeExpiry { get; set; }
     public UserStatus UserStatus { get; set; } = UserStatus.Active;
 }

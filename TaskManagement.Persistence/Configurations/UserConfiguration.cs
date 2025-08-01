@@ -23,6 +23,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
                .IsRequired()
                .HasMaxLength(100);
 
+        builder.Property(u => u.PasswordResetToken);
+
+        builder.Property(u => u.PasswordResetTokenExpiry);
+
         builder.Property(u => u.PasswordHash)
                .HasMaxLength(500);
 

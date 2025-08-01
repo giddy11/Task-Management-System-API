@@ -78,6 +78,20 @@ public class AuthController : BaseController
                     .ResponseResult();
             }
 
+            if (user.UserStatus != UserStatus.Active)
+            {
+                return OperationResponse.FailedResponse(Application.Utils.StatusCode.Unauthorized)
+                    .AddError("Email not verified. Please verify your email to log in.")
+                    .ResponseResult();
+            }
+
+            if (user.UserStatus == UserStatus.Suspended)
+            {
+                return OperationResponse.FailedResponse(Application.Utils.StatusCode.Unauthorized)
+                    .AddError("Sorry you have been suspended. Please contact admin")
+                    .ResponseResult();
+            }
+
             var passwordVerificationResult = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash!, request.Password);
             if (passwordVerificationResult == PasswordVerificationResult.Failed)
             {
@@ -109,13 +123,10 @@ public class AuthController : BaseController
     }
 
     /// <summary>
-    /// Registers a new user.
+    /// Registers a new user and sends a verification code to their email.
     /// </summary>
     /// <param name="request">The user registration request.</param>
     /// <returns>An IActionResult representing the result of the operation.</returns>
-    /// <remarks>
-    /// This endpoint creates a new user account.
-    /// </remarks>
     [HttpPost("register")]
     [ProducesResponseType(typeof(UserCreateResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status400BadRequest)]
@@ -137,7 +148,6 @@ public class AuthController : BaseController
                     .ResponseResult();
             }
 
-            // Check if user with email already exists
             var existingUser = await UnitOfWork.UserRepository.GetUserByEmailAsync(request.Email);
             if (existingUser != null)
             {
@@ -151,10 +161,11 @@ public class AuthController : BaseController
                 Email = request.Email,
                 FirstName = request.FirstName,
                 LastName = request.LastName,
-                UserStatus = UserStatus.Active
+                UserStatus = UserStatus.Inactive, // Pending until email is verified
+                PasswordHash = _passwordHasher.HashPassword(null!, request.Password),
+                VerificationCode = GenerateVerificationCode(),
+                VerificationCodeExpiry = DateTime.UtcNow.AddHours(24) // Code expires in 24 hours
             };
-
-            newUser.PasswordHash = _passwordHasher.HashPassword(newUser, request.Password);
 
             await UnitOfWork.UserRepository.AddAsync(newUser);
             var saveResult = await UnitOfWork.SaveChangesAsync();
@@ -163,6 +174,11 @@ public class AuthController : BaseController
             {
                 return saveResult.ResponseResult();
             }
+
+            // Send verification code via email
+            var emailBody = $"Your verification code is: {newUser.VerificationCode}<br/><br/>" +
+                            $"Please use this code to verify your email address.";
+            await _emailService.SendEmailAsync(request.Email, "Verify Your Email", emailBody);
 
             var userResponse = Mapper.Map<UserCreateResponse>(newUser);
             return OperationResponse<UserCreateResponse>.CreatedResponse(userResponse)
@@ -173,6 +189,196 @@ public class AuthController : BaseController
             Logger.LogError(ex, "Error registering user with email {Email}", request.Email);
             return OperationResponse.FailedResponse(Application.Utils.StatusCode.InternalServerError)
                 .AddError("An error occurred while registering the user")
+                .ResponseResult();
+        }
+    }
+
+    /// <summary>
+    /// Resends a verification code to the user's email.
+    /// </summary>
+    /// <param name="request">The resend verification code request containing the email.</param>
+    /// <returns>An IActionResult indicating the result of the operation.</returns>
+    [HttpPost("resend-verification-code")]
+    [ProducesResponseType(typeof(ResendVerificationCodeResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> ResendVerificationCode([FromBody] ResendVerificationCodeRequest request)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return OperationResponse.FailedResponse(Application.Utils.StatusCode.BadRequest)
+                    .AddErrors(errors)
+                    .ResponseResult();
+            }
+
+            var user = await UnitOfWork.UserRepository.GetUserByEmailAsync(request.Email);
+            if (user == null || user.UserStatus == UserStatus.Active)
+            {
+                // Return generic response to prevent enumeration and avoid resending for verified users
+                return OperationResponse<ResendVerificationCodeResponse>.SuccessfulResponse(
+                    new ResendVerificationCodeResponse())
+                    .ResponseResult();
+            }
+
+            // Generate and store new verification code
+            user.VerificationCode = GenerateVerificationCode();
+            user.VerificationCodeExpiry = DateTime.UtcNow.AddHours(24);
+
+            await UnitOfWork.UserRepository.UpdateAsync(user);
+            var saveResult = await UnitOfWork.SaveChangesAsync();
+
+            if (!saveResult.IsSuccessful)
+            {
+                return saveResult.ResponseResult();
+            }
+
+            // Send new verification code via email
+            var emailBody = $"Your new verification code is: {user.VerificationCode}<br/><br/>" +
+                            $"Please use this code to verify your email address.";
+            await _emailService.SendEmailAsync(request.Email, "Verify Your Email", emailBody);
+
+            return OperationResponse<ResendVerificationCodeResponse>.SuccessfulResponse(
+                new ResendVerificationCodeResponse())
+                .ResponseResult();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error resending verification code for email {Email}", request.Email);
+            return OperationResponse.FailedResponse(Application.Utils.StatusCode.InternalServerError)
+                .AddError("An error occurred while resending the verification code")
+                .ResponseResult();
+        }
+    }
+
+    /// <summary>
+    /// Verifies a user’s email using a verification code.
+    /// </summary>
+    /// <param name="request">The verify email request containing the email and code.</param>
+    /// <returns>An IActionResult indicating the result of the operation.</returns>
+    [HttpPost("verify-email")]
+    [ProducesResponseType(typeof(VerifyEmailResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailRequest request)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return OperationResponse.FailedResponse(Application.Utils.StatusCode.BadRequest)
+                    .AddErrors(errors)
+                    .ResponseResult();
+            }
+
+            var user = await UnitOfWork.UserRepository.GetByEmailAndVerificationCodeAsync(request.Email, request.Code);
+            if (user == null || user.VerificationCodeExpiry < DateTime.UtcNow)
+            {
+                return OperationResponse.FailedResponse(Application.Utils.StatusCode.Unauthorized)
+                    .AddError("Invalid or expired verification code.")
+                    .ResponseResult();
+            }
+
+            if (user.UserStatus == UserStatus.Active)
+            {
+                return OperationResponse<VerifyEmailResponse>.SuccessfulResponse(
+                    new VerifyEmailResponse { Message = "Email already verified." })
+                    .ResponseResult();
+            }
+
+            user.UserStatus = UserStatus.Active;
+            user.VerificationCode = null;
+            user.VerificationCodeExpiry = null;
+
+            await UnitOfWork.UserRepository.UpdateAsync(user);
+            var saveResult = await UnitOfWork.SaveChangesAsync();
+
+            if (!saveResult.IsSuccessful)
+            {
+                return saveResult.ResponseResult();
+            }
+
+            return OperationResponse<VerifyEmailResponse>.SuccessfulResponse(
+                new VerifyEmailResponse())
+                .ResponseResult();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error verifying email for {Email}", request.Email);
+            return OperationResponse.FailedResponse(Application.Utils.StatusCode.InternalServerError)
+                .AddError("An error occurred while verifying the email")
+                .ResponseResult();
+        }
+    }
+
+    /// <summary>
+    /// Changes a user's password using a reset token.
+    /// </summary>
+    /// <param name="request">The change password request containing the email, token, and new password.</param>
+    /// <returns>An IActionResult indicating the result of the operation.</returns>
+    [HttpPost("change-password")]
+    [ProducesResponseType(typeof(ChangePasswordResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return OperationResponse.FailedResponse(Application.Utils.StatusCode.BadRequest)
+                    .AddErrors(errors)
+                    .ResponseResult();
+            }
+
+            var user = await UnitOfWork.UserRepository.GetByEmailAndResetTokenAsync(request.Email, request.Token);
+            if (user == null || user.PasswordResetTokenExpiry < DateTime.UtcNow)
+            {
+                return OperationResponse.FailedResponse(Application.Utils.StatusCode.Unauthorized)
+                    .AddError("Invalid or expired password reset token.")
+                    .ResponseResult();
+            }
+
+            // Update password
+            user.PasswordHash = _passwordHasher.HashPassword(user, request.NewPassword);
+            user.PasswordResetToken = null;
+            user.PasswordResetTokenExpiry = null;
+
+            await UnitOfWork.UserRepository.UpdateAsync(user);
+            var saveResult = await UnitOfWork.SaveChangesAsync();
+
+            if (!saveResult.IsSuccessful)
+            {
+                return saveResult.ResponseResult();
+            }
+
+            return OperationResponse<ChangePasswordResponse>.SuccessfulResponse(
+                new ChangePasswordResponse())
+                .ResponseResult();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error changing password for email {Email}", request.Email);
+            return OperationResponse.FailedResponse(Application.Utils.StatusCode.InternalServerError)
+                .AddError("An error occurred while changing the password")
                 .ResponseResult();
         }
     }
@@ -205,13 +411,11 @@ public class AuthController : BaseController
             var user = await UnitOfWork.UserRepository.GetUserByEmailAsync(request.Email);
             if (user == null)
             {
-                // Return generic response to prevent email enumeration
                 return OperationResponse<ForgotPasswordResponse>.SuccessfulResponse(
                     new ForgotPasswordResponse())
                     .ResponseResult();
             }
 
-            // Generate a secure random password
             var newPassword = GenerateRandomPassword(16);
             user.PasswordHash = _passwordHasher.HashPassword(user, newPassword);
 
@@ -238,6 +442,21 @@ public class AuthController : BaseController
                 .AddError("An error occurred while processing the forgot password request")
                 .ResponseResult();
         }
+    }
+
+    private string GenerateVerificationCode()
+    {
+        const string validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        var bytes = new byte[6];
+        RandomNumberGenerator.Fill(bytes);
+
+        var code = new char[6];
+        for (int i = 0; i < 6; i++)
+        {
+            code[i] = validChars[bytes[i] % validChars.Length];
+        }
+
+        return new string(code);
     }
 
     private string GenerateRandomPassword(int length)

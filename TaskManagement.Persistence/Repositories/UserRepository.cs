@@ -21,5 +21,25 @@ public class UserRepository : Repository<User>, IUserRepository
             .FirstOrDefaultAsync(u => u.Email == email);
     }
 
+    public async Task<User?> GetByEmailAndResetTokenAsync(string email, string token)
+    {
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(token))
+            return null;
+
+        return await _dbContext.Set<User>()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Email == email && u.PasswordResetToken == token);
+    }
+
+    public async Task<User?> GetByEmailAndVerificationCodeAsync(string email, string code)
+    {
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(code))
+            return null;
+
+        return await _dbContext.Set<User>()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Email == email && u.VerificationCode == code);
+    }
+
     protected readonly TaskManagementDbContext _dbContext;
 }
