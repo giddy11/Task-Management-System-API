@@ -100,11 +100,28 @@ public class AuthController : BaseController
                     .ResponseResult();
             }
 
-            var token = GenerateJwtToken(user);
+            var accessToken = GenerateJwtToken(user);
+            var refreshToken = GenerateRefreshToken();
+            var refreshTokenEntity = new RefreshToken
+            {
+                UserId = user.Id,
+                Token = refreshToken,
+                ExpiryDate = DateTime.UtcNow.AddDays(7),
+                IsRevoked = false
+            };
+
+            await UnitOfWork.UserRepository.AddRefreshTokenAsync(refreshTokenEntity);
+            var saveResult = await UnitOfWork.SaveChangesAsync();
+
+            if (!saveResult.IsSuccessful)
+            {
+                return saveResult.ResponseResult();
+            }
 
             var loginResponse = new LoginResponse
             {
-                Token = token,
+                Token = accessToken,
+                RefreshToken = refreshToken,
                 UserId = user.Id,
                 Email = user.Email,
                 AccountType = user.AccountType
@@ -175,7 +192,7 @@ public class AuthController : BaseController
             {
                 UserId = user.Id,
                 Token = newRefreshToken,
-                ExpiryDate = DateTime.UtcNow.AddDays(7),
+                ExpiryDate = DateTime.UtcNow.AddMinutes(2),
                 IsRevoked = false
             };
 
