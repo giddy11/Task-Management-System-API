@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskManagement.Domain", "Ta
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskManagement.Persistence", "TaskManagement.Persistence\TaskManagement.Persistence.csproj", "{92B5DFD1-C9D0-458D-8E80-34A956E6C376}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskManagement.Infrastructure", "TaskManagement.Infrastructure\TaskManagement.Infrastructure.csproj", "{AD3009E0-C3F8-4FDD-8312-F28F29C086F4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{92B5DFD1-C9D0-458D-8E80-34A956E6C376}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{92B5DFD1-C9D0-458D-8E80-34A956E6C376}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{92B5DFD1-C9D0-458D-8E80-34A956E6C376}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AD3009E0-C3F8-4FDD-8312-F28F29C086F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD3009E0-C3F8-4FDD-8312-F28F29C086F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD3009E0-C3F8-4FDD-8312-F28F29C086F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD3009E0-C3F8-4FDD-8312-F28F29C086F4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -48,6 +54,7 @@ Global
 		{111077DF-296E-4907-9653-0A0D01E83DE9} = {5C47578F-61D6-4916-A0F4-911AC42DBB85}
 		{1A73DF57-EBE3-4F29-A3E9-A631EFB9A689} = {5C47578F-61D6-4916-A0F4-911AC42DBB85}
 		{92B5DFD1-C9D0-458D-8E80-34A956E6C376} = {DC45BC2D-FDF5-457B-A01D-555A5BE98FF9}
+		{AD3009E0-C3F8-4FDD-8312-F28F29C086F4} = {DC45BC2D-FDF5-457B-A01D-555A5BE98FF9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FFB2BC27-2CB4-46E3-8D04-44611BF02F7B}

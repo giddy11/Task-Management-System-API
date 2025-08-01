@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using TaskManagement.API.Extensions;
+using TaskManagement.Application.Contracts.Infrastructure;
 using TaskManagement.Application.Contracts.Persistence;
 using TaskManagement.Application.Features.Auth.Dtos;
 using TaskManagement.Application.Features.UserManagement.Dtos;
@@ -22,18 +24,21 @@ namespace TaskManagement.API.Controllers;
 public class AuthController : BaseController
 {
     private readonly IPasswordHasher<User> _passwordHasher;
-    private readonly Microsoft.Extensions.Configuration.IConfiguration _configuration;
+    private readonly IConfiguration _configuration;
+    private readonly IEmailService _emailService;
 
     public AuthController(
         IUnitOfWork unitOfWork,
         IMapper mapper,
         ILogger<AuthController> logger,
         IPasswordHasher<User> passwordHasher,
-        Microsoft.Extensions.Configuration.IConfiguration configuration)
+        IConfiguration configuration,
+        IEmailService emailService)
         : base(unitOfWork, mapper, logger)
     {
         _passwordHasher = passwordHasher;
         _configuration = configuration;
+        _emailService = emailService;
     }
 
     /// <summary>
@@ -170,6 +175,85 @@ public class AuthController : BaseController
                 .AddError("An error occurred while registering the user")
                 .ResponseResult();
         }
+    }
+
+    /// <summary>
+    /// Generates and sends a new random password to the user's email.
+    /// </summary>
+    /// <param name="request">The forgot password request containing the user's email.</param>
+    /// <returns>An IActionResult indicating the result of the operation.</returns>
+    [HttpPost("forgot-password")]
+    [ProducesResponseType(typeof(ForgotPasswordResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return OperationResponse.FailedResponse(Application.Utils.StatusCode.Conflict)
+                    .AddError($"User with email {request.Email} doesn't exist.")
+                    .ResponseResult();
+            }
+
+            var user = await UnitOfWork.UserRepository.GetUserByEmailAsync(request.Email);
+            if (user == null)
+            {
+                // Return generic response to prevent email enumeration
+                return OperationResponse<ForgotPasswordResponse>.SuccessfulResponse(
+                    new ForgotPasswordResponse())
+                    .ResponseResult();
+            }
+
+            // Generate a secure random password
+            var newPassword = GenerateRandomPassword(16);
+            user.PasswordHash = _passwordHasher.HashPassword(user, newPassword);
+
+            await UnitOfWork.UserRepository.UpdateAsync(user);
+            var saveResult = await UnitOfWork.SaveChangesAsync();
+
+            if (!saveResult.IsSuccessful)
+            {
+                return saveResult.ResponseResult();
+            }
+
+            var emailBody = $"Your new password is: {newPassword}<br/><br/>" +
+                            $"Please log in with this password and consider changing it in your account settings.";
+            await _emailService.SendEmailAsync(request.Email, "Your New Password", emailBody);
+
+            return OperationResponse<ForgotPasswordResponse>.SuccessfulResponse(
+                new ForgotPasswordResponse())
+                .ResponseResult();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error processing forgot password request for email {Email}", request.Email);
+            return OperationResponse.FailedResponse(Application.Utils.StatusCode.InternalServerError)
+                .AddError("An error occurred while processing the forgot password request")
+                .ResponseResult();
+        }
+    }
+
+    private string GenerateRandomPassword(int length)
+    {
+        const string validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
+        var random = new Random();
+        var bytes = new byte[length];
+        RandomNumberGenerator.Fill(bytes);
+
+        var password = new char[length];
+        for (int i = 0; i < length; i++)
+        {
+            password[i] = validChars[bytes[i] % validChars.Length];
+        }
+
+        return new string(password);
     }
 
     private string GenerateJwtToken(User user)

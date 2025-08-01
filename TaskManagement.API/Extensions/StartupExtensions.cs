@@ -1,5 +1,6 @@
 ﻿using TaskManagement.Application;
 using TaskManagement.Persistence;
+using TaskManagement.Infrastructure;
 
 namespace TaskManagement.API.Extensions;
 
@@ -9,6 +10,7 @@ public static class StartupExtensions
     {
         builder.Services.AddPersistenceServices(connectionString);
         builder.Services.AddApplicationServices(builder.Configuration);
+        builder.Services.AddInfrastructureServices(builder.Configuration);
         return builder.Build();
     }
 }
