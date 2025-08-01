@@ -123,6 +123,89 @@ public class AuthController : BaseController
     }
 
     /// <summary>
+    /// Refreshes an access token using a valid refresh token.
+    /// </summary>
+    /// <param name="request">The refresh token request containing the refresh token.</param>
+    /// <returns>An IActionResult containing a new access token and refresh token.</returns>
+    [HttpPost("refresh-token")]
+    [ProducesResponseType(typeof(RefreshTokenResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(OperationResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+
+                return OperationResponse.FailedResponse(Application.Utils.StatusCode.BadRequest)
+                    .AddErrors(errors)
+                    .ResponseResult();
+            }
+
+            var refreshTokenEntity = await UnitOfWork.UserRepository.GetRefreshTokenAsync(request.RefreshToken);
+            if (refreshTokenEntity == null || refreshTokenEntity.IsRevoked || refreshTokenEntity.ExpiryDate < DateTime.UtcNow)
+            {
+                return OperationResponse.FailedResponse(Application.Utils.StatusCode.Unauthorized)
+                    .AddError("Invalid or expired refresh token.")
+                    .ResponseResult();
+            }
+
+            var user = await UnitOfWork.UserRepository.GetByIdAsync(refreshTokenEntity.UserId);
+            if (user == null || user.UserStatus != UserStatus.Active)
+            {
+                return OperationResponse.FailedResponse(Application.Utils.StatusCode.Unauthorized)
+                    .AddError("User not found or email not verified.")
+                    .ResponseResult();
+            }
+
+            // Revoke the used refresh token
+            refreshTokenEntity.IsRevoked = true;
+            await UnitOfWork.UserRepository.UpdateRefreshTokenAsync(refreshTokenEntity);
+
+            // Generate new access and refresh tokens
+            var newAccessToken = GenerateJwtToken(user);
+            var newRefreshToken = GenerateRefreshToken();
+            var newRefreshTokenEntity = new RefreshToken
+            {
+                UserId = user.Id,
+                Token = newRefreshToken,
+                ExpiryDate = DateTime.UtcNow.AddDays(7),
+                IsRevoked = false
+            };
+
+            await UnitOfWork.UserRepository.AddRefreshTokenAsync(newRefreshTokenEntity);
+            var saveResult = await UnitOfWork.SaveChangesAsync();
+
+            if (!saveResult.IsSuccessful)
+            {
+                return saveResult.ResponseResult();
+            }
+
+            var response = new RefreshTokenResponse
+            {
+                AccessToken = newAccessToken,
+                RefreshToken = newRefreshToken
+            };
+
+            return OperationResponse<RefreshTokenResponse>.SuccessfulResponse(response)
+                .ResponseResult();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error refreshing token");
+            return OperationResponse.FailedResponse(Application.Utils.StatusCode.InternalServerError)
+                .AddError("An error occurred while refreshing the token")
+                .ResponseResult();
+        }
+    }
+
+    /// <summary>
     /// Registers a new user and sends a verification code to their email.
     /// </summary>
     /// <param name="request">The user registration request.</param>
@@ -457,6 +540,13 @@ public class AuthController : BaseController
         }
 
         return new string(code);
+    }
+
+    private string GenerateRefreshToken()
+    {
+        var bytes = new byte[64];
+        RandomNumberGenerator.Fill(bytes);
+        return Convert.ToBase64String(bytes);
     }
 
     private string GenerateRandomPassword(int length)

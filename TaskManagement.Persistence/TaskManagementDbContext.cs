@@ -17,6 +17,7 @@ public class TaskManagementDbContext(DbContextOptions<TaskManagementDbContext> o
 
     //user management entities
     public DbSet<User> Users { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
 
     // Core Domain Entities
     public DbSet<Label> Labels { get; set; }

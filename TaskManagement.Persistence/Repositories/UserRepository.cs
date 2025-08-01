@@ -41,5 +41,22 @@ public class UserRepository : Repository<User>, IUserRepository
             .FirstOrDefaultAsync(u => u.Email == email && u.VerificationCode == code);
     }
 
+    public async Task<RefreshToken?> GetRefreshTokenAsync(string token)
+    {
+        return await _dbContext.RefreshTokens
+            .Include(rt => rt.User)
+            .FirstOrDefaultAsync(rt => rt.Token == token);
+    }
+
+    public async Task AddRefreshTokenAsync(RefreshToken refreshToken)
+    {
+        await _dbContext.RefreshTokens.AddAsync(refreshToken);
+    }
+
+    public async Task UpdateRefreshTokenAsync(RefreshToken refreshToken)
+    {
+        _dbContext.RefreshTokens.Update(refreshToken);
+    }
+
     protected readonly TaskManagementDbContext _dbContext;
 }
